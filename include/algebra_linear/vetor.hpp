@@ -30,7 +30,13 @@ public:
     //operações com vetores
     bool equality(const Vector& other) const;
     Vector assigment(const Vector& other) const;
-
+    Vector operator+(const Vector& other) const;
+    Vector operator*(const int escale) const;
+    Vector operator*(const Vector& other) const;
+    Vector operator-(const Vector& other) const;
+    Vector axpy(const Vector& y, double alpha) const;
+    double euclidian_length() const;
+    double linear_product(const Vector& other) const;
 };
 
 
