@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(SistemasLineares VERSION 1.0)
 
+# Exporta configurações necessárias para que o clangd consiga entender a estrutura do projeto.
+# Requer fazer o build ao menos uma vez.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Configurações básicas
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
