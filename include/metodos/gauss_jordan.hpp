@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <stdexcept>
-#include "matriz.hpp"
+#include "algebra_linear/matriz.hpp"
 
 
 namespace gaussjordan{

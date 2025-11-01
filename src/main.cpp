@@ -1,5 +1,5 @@
 #include <cstdio>
-#include "../include/metodos/gauss_jordan.hpp"
+#include "metodos/gauss_jordan.hpp"
 
 int main() {
 
