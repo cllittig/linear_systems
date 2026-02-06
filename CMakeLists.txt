@@ -6,7 +6,8 @@ project(SistemasLineares VERSION 1.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Configurações básicas
-set(CMAKE_CXX_STANDARD 17)
+set(CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -14,7 +15,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -Wall -Wextra")
 endif()
 
 # Inclui diretórios de headers
@@ -33,13 +34,15 @@ add_library(algebra_linear
 
 # Biblioteca de Métodos Numéricos
 add_library(metodos
-    src/metodos/gauss_jordan
+    src/metodos/gauss_jordan.cpp
 )
 
 # Biblioteca de Utilitários
 add_library(utils
     src/utils/read_data.cpp
 )
+
+# add_library()
 
 # Executável principal
 add_executable(sistema_linear

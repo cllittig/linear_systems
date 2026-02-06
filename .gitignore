@@ -1,2 +1,10 @@
-build/
+build
+CMakeFiles
 CMakeCache.txt
+Makefile
+cmake_install.cmake
+compile_commands.json
+sistema_linear
+notas.md
+.cache/*
+*.a

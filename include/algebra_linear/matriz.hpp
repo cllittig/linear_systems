@@ -2,8 +2,6 @@
 #define MATRIZ_HPP
 
 #include <vector>
-#include <stdexcept>
-#include <cstdio>
 
 class Matriz{
 
@@ -12,13 +10,14 @@ private:
     //atributos privados
     int rows;
     int columns;
-    std::vector<std::vector<double>> data;
     bool isSimetricRec(int i, int j) const;
 
 public:
+    std::vector<double> data;
     //construtor e destrutor
     Matriz();
     Matriz(int rows, int columns);
+    Matriz(std::tuple<int,int>, std::vector<double>);
     Matriz(const Matriz& other);
     
     ~Matriz();

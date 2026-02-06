@@ -1,74 +1,58 @@
 #include "metodos/gauss_jordan.hpp"
-#include <vector>
-#include <stdexcept>
 #include "matriz.hpp"
+#include <cstdlib>
+// #include <stdexcept>
+#include <vector>
 
+namespace gaussjordan {
 
+void swap(int a, int b) {
+}
 
-namespace gaussjordan
-{
-    std::vector<double> gauss_jordan(Matriz data, int current_row)
-    {
-        int row = data.getRows(), column = data.getColumns();
+Matriz gauss_jordan(Matriz matriz, int current_row) {
 
+    // h := 1 /* Initialization of the pivot row */
+    // k := 1 /* Initialization of the pivot column */
+    //
+    // while h ≤ m and k ≤ n
+    //     /* Find the k-th pivot: */
+    //     i_max := argmax (i = h ... m, abs(A[i, k]))
+    //     if A[i_max, k] = 0
+    //         /* No pivot in this column, pass to next column */
+    //         k := k + 1
+    //     else
+    //         swap rows(h, i_max)
+    //         /* Do for all rows below pivot: */
+    //         for i = h + 1 ... m:
+    //             f := A[i, k] / A[h, k]
+    //             /* Fill with zeros the lower part of pivot column: */
+    //             A[i, k] := 0
+    //             /* Do for all remaining elements in current row: */
+    //             for j = k + 1 ... n:
+    //                 A[i, j] := A[i, j] - A[h, j] * f
+    //         /* Increase pivot row and column */
+    //         h := h + 1
+    //         k := k + 1
+    // auto h = 1, k = 1;
+    // auto m = matriz.getRows(), n = matriz.getColumns();
+    //
+    // while (h <= m && k <= n) {
+    //     auto max = -1;
+    //     auto i_max = -1;
+    //     for (auto i = 0; i < m; i++) {
+    //         if (matriz.getValue(i, k) > max) {
+    //             i_max = i;
+    //             max = std::abs(matriz.getValue(i, k));
+    //        }
+    //     }
+    //     if (matriz.getValue(i_max, k) == 0) {
+    //         k++;
+    //     } else {
+    //         matriz.data.swap(vector<double> &x);
+    //     }
+    // }
+    
+    return Matriz(0, 0);
+}
 
-        //caso base
-        if(row == 1 && column == 2){
-
-            double response = data.getValue(current_row, row) / data.getValue(current_row, current_row) ;
-
-            if(data.getValue(0, 0) == 0 && data.getValue(0,1) == 0)
-                throw std::runtime_error("Sistema indeterminado");
-            else if(data.getValue(0, 0) == 0 && data.getValue(0,1) != 0)
-                throw std::runtime_error("Sistema impossivel");
-
-            return {response};
-        }
-
-
-        //piv. parcial
-        int max_row = current_row;
-        for(int i= current_row+1; i< row;i++){
-            if(abs(data.getValue(i, current_row )) > abs(data.getValue(max_row, current_row)))
-                max_row=i;
-        } 
-
-        //troca. linhas
-        if(max_row!= current_row){
-            for(int j = current_row; j<=row; j++){
-                data.trocarLinhas(current_row, max_row);
-            }
-        }
-
-        //norm. linha pivo
-        double pivo = data.getValue(current_row, current_row);
-        for(int j = current_row; j<=row; j++){
-            data.setValue(current_row, j, data.getValue(current_row,j)/pivo);
-        }
-
-        for(int i =0; i<row; i++){
-            //não posso zerar a linha do pivo atual usando o pivo atual
-            if(i==current_row) continue;
-
-            double fator = data.getValue(i, current_row);
-
-            //faz a normalização das linhas abaixo do atual pivo
-            for(int k= current_row; k<=row; k++){
-                double newValue = data.getValue(i, k) - fator * data.getValue(current_row, k);
-                data.setValue(i,k, newValue);
-            }
-        }
-
-        //chamada da recursão.
-        std::vector<double> parcSolution = gauss_jordan(data, current_row+1);
-
-
-        double currentSolution = data.getValue(current_row, row);
-
-        std::vector<double> completeSolution;
-        completeSolution.push_back(currentSolution);
-        completeSolution.insert(completeSolution.end(),parcSolution.begin(), parcSolution.end());
-
-        return completeSolution;
-    }
 };
