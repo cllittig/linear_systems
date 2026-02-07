@@ -1,4 +1,6 @@
-#include <gauss_jordan.hpp>
+
+#include <cstdio>
+#include "metodos/gauss_jordan.hpp"
 
 int main() {
 

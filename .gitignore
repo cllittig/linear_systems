@@ -5,6 +5,7 @@ Makefile
 cmake_install.cmake
 compile_commands.json
 sistema_linear
+main
 notas.md
 .cache/*
 *.a

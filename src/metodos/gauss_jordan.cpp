@@ -1,8 +1,6 @@
+
 #include "metodos/gauss_jordan.hpp"
-#include "matriz.hpp"
-#include <cstdlib>
-// #include <stdexcept>
-#include <vector>
+#include "algebra_linear/matriz.hpp"
 
 namespace gaussjordan {
 
