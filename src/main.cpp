@@ -1,6 +1,6 @@
 
-#include <cstdio>
 #include "metodos/gauss_jordan.hpp"
+#include <cstdio>
 
 int main() {
 
@@ -10,10 +10,16 @@ int main() {
         0, 1,  1,
     });
 
-    a.printMatriz();
+// 0.2 0.2 0 
+// -0.2 0.3 1 
+// 0.2 -0.3 0 
 
-    auto resultado = gaussjordan::gauss_jordan(a);
+    a.print();
 
-    resultado.printMatriz();
+    auto resultado = a.inverse();
+
+    printf("\n");
+
+    resultado.print();
     return 0;
 }

@@ -6,8 +6,7 @@ LDFLAGS :=
 SOURCE := $(shell find src -name '*.cpp')
 OBJS := $(SOURCE:src/%.cpp=build/%.o)
 
-
-#linka o código-objeto
+# Para testes apenas.
 main: ${OBJS}
 	${CXX} ${LDFLAGS} -o $@ ${OBJS}
 
@@ -17,3 +16,4 @@ build/%.o: src/%.cpp
 
 clean:
 	rm -rf main build
+.PHONY: clean

@@ -46,7 +46,7 @@ public:
     bool isSimetric() const;
 
     //Métodos auxiliares
-    void printMatriz() const;
+    void print() const;
     void trocarLinhas(int linha1, int linha2);
 };
 

@@ -4,53 +4,73 @@
 
 namespace gaussjordan {
 
-void swap(int a, int b) {
+Matriz gauss_jordan(const Matriz &A, const Matriz &b) {
+  if (!A.isSquare()) {
+    throw std::runtime_error("A matriz A deve ser quadrada.");
+  }
+
+  if (A.getRows() != b.getRows()) {
+    throw std::runtime_error("Dimensões incompatíveis entre A e b.");
+  }
+
+  int n = A.getRows();
+  int m = b.getColumns();
+
+  // [A | b]
+  Matriz augmented(n, n + m);
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      augmented.setValue(i, j, A.getValue(i, j));
+    }
+    for (int j = 0; j < m; j++) {
+      augmented.setValue(i, j + n, b.getValue(i, j));
+    }
+  }
+
+  for (int i = 0; i < n; i++) {
+    double pivot = augmented.getValue(i, i);
+
+    if (std::abs(pivot) < 1e-9) {
+      bool swapped = false;
+      for (int k = i + 1; k < n; k++) {
+        if (std::abs(augmented.getValue(k, i)) > 1e-9) {
+          augmented.trocarLinhas(i, k);
+          swapped = true;
+          break;
+        }
+      }
+      if (!swapped) {
+        throw std::runtime_error("O sistema não possui solução única.");
+      }
+      pivot = augmented.getValue(i, i);
+    }
+
+    for (int j = 0; j < n + m; j++) {
+      augmented.setValue(i, j, augmented.getValue(i, j) / pivot);
+    }
+
+    // Eliminação
+    for (int k = 0; k < n; k++) {
+      if (k == i)
+        continue;
+
+      double factor = augmented.getValue(k, i);
+      for (int j = 0; j < n + m; j++) {
+        augmented.setValue(
+            k, j, augmented.getValue(k, j) - factor * augmented.getValue(i, j));
+      }
+    }
+  }
+
+  Matriz x(n, m);
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < m; j++) {
+      x.setValue(i, j, augmented.getValue(i, j + n));
+    }
+  }
+
+  return x;
 }
 
-Matriz gauss_jordan(Matriz matriz, int current_row) {
-
-    // h := 1 /* Initialization of the pivot row */
-    // k := 1 /* Initialization of the pivot column */
-    //
-    // while h ≤ m and k ≤ n
-    //     /* Find the k-th pivot: */
-    //     i_max := argmax (i = h ... m, abs(A[i, k]))
-    //     if A[i_max, k] = 0
-    //         /* No pivot in this column, pass to next column */
-    //         k := k + 1
-    //     else
-    //         swap rows(h, i_max)
-    //         /* Do for all rows below pivot: */
-    //         for i = h + 1 ... m:
-    //             f := A[i, k] / A[h, k]
-    //             /* Fill with zeros the lower part of pivot column: */
-    //             A[i, k] := 0
-    //             /* Do for all remaining elements in current row: */
-    //             for j = k + 1 ... n:
-    //                 A[i, j] := A[i, j] - A[h, j] * f
-    //         /* Increase pivot row and column */
-    //         h := h + 1
-    //         k := k + 1
-    // auto h = 1, k = 1;
-    // auto m = matriz.getRows(), n = matriz.getColumns();
-    //
-    // while (h <= m && k <= n) {
-    //     auto max = -1;
-    //     auto i_max = -1;
-    //     for (auto i = 0; i < m; i++) {
-    //         if (matriz.getValue(i, k) > max) {
-    //             i_max = i;
-    //             max = std::abs(matriz.getValue(i, k));
-    //        }
-    //     }
-    //     if (matriz.getValue(i_max, k) == 0) {
-    //         k++;
-    //     } else {
-    //         matriz.data.swap(vector<double> &x);
-    //     }
-    // }
-    
-    return Matriz(0, 0);
-}
-
-};
+}; // namespace gaussjordan
