@@ -1,6 +1,6 @@
 
-#include "metodos/gauss_jordan.hpp"
 #include "algebra_linear/matriz.hpp"
+#include <stdexcept>
 
 namespace gaussjordan {
 

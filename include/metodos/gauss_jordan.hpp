@@ -1,12 +1,11 @@
 #ifndef GAUSSJORDAN_HPP
 #define GAUSSJORDAN_HPP
 
-#include <stdexcept>
 #include "algebra_linear/matriz.hpp"
 
 
 namespace gaussjordan{
-    Matriz gauss_jordan(Matriz data, int current_row =0);
+    Matriz gauss_jordan(const Matriz &A, const Matriz &b);
 }
 
 #endif //GAUSSJORDAN_HPP
