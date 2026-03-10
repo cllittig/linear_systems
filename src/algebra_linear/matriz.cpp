@@ -1,8 +1,8 @@
 #include "algebra_linear/matriz.hpp"
 #include <cblas.h>
 #include <cmath>
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 #include <stdexcept>
 #include <tuple>
 
@@ -203,93 +203,91 @@ Matriz Matriz::identity() const {
 }
 
 Matriz Matriz::inverse() const {
-    if (!isSquare()) {
-        throw std::runtime_error("A matriz precisa ser quadrada.");
+  if (!isSquare()) {
+    throw std::runtime_error("A matriz precisa ser quadrada.");
+  }
+
+  int n = rows;
+  Matriz augmented(n, 2 * n);
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      augmented.setValue(i, j, getValue(i, j));
+    }
+    for (int j = n; j < 2 * n; j++) {
+      augmented.setValue(i, j, (i == j - n) ? 1.0 : 0.0);
+    }
+  }
+
+  for (int i = 0; i < n; i++) {
+    double pivot = augmented.getValue(i, i);
+
+    if (std::abs(pivot) < 1e-9) {
+      bool swapped = false;
+      for (int k = i + 1; k < n; k++) {
+        if (std::abs(augmented.getValue(k, i)) > 1e-9) {
+          augmented.trocarLinhas(i, k);
+          swapped = true;
+          break;
+        }
+      }
+      if (!swapped) {
+        throw std::runtime_error("A matriz não é inversível.");
+      }
+      pivot = augmented.getValue(i, i);
     }
 
-    int n = rows;
-    Matriz augmented(n, 2 * n);
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            augmented.setValue(i, j, getValue(i, j));
-        }
-        for (int j = n; j < 2 * n; j++) {
-            augmented.setValue(i, j, (i == j - n) ? 1.0 : 0.0);
-        }
+    for (int j = 0; j < 2 * n; j++) {
+      augmented.setValue(i, j, augmented.getValue(i, j) / pivot);
     }
 
-    for (int i = 0; i < n; i++) {
-        double pivot = augmented.getValue(i, i);
+    for (int k = 0; k < n; k++) {
+      if (k == i)
+        continue;
 
-        if (std::abs(pivot) < 1e-9) {
-            bool swapped = false;
-            for (int k = i + 1; k < n; k++) {
-                if (std::abs(augmented.getValue(k, i)) > 1e-9) {
-                    augmented.trocarLinhas(i, k);
-                    swapped = true;
-                    break;
-                }
-            }
-            if (!swapped) {
-                throw std::runtime_error("A matriz não é inversível.");
-            }
-            pivot = augmented.getValue(i, i);
-        }
-
-        for (int j = 0; j < 2 * n; j++) {
-            augmented.setValue(i, j, augmented.getValue(i, j) / pivot);
-        }
-
-        for (int k = 0; k < n; k++) {
-            if (k == i) continue;
-
-            double factor = augmented.getValue(k, i);
-            for (int j = 0; j < 2 * n; j++) {
-                augmented.setValue(
-                    k, j,
-                    augmented.getValue(k, j) - factor * augmented.getValue(i, j)
-                );
-            }
-        }
+      double factor = augmented.getValue(k, i);
+      for (int j = 0; j < 2 * n; j++) {
+        augmented.setValue(
+            k, j, augmented.getValue(k, j) - factor * augmented.getValue(i, j));
+      }
     }
+  }
 
-    Matriz inverse(n, n);
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            inverse.setValue(i, j, augmented.getValue(i, j + n));
-        }
+  Matriz inverse(n, n);
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      inverse.setValue(i, j, augmented.getValue(i, j + n));
     }
+  }
 
-    return inverse;
+  return inverse;
 }
-
 
 // Print matriz
 void Matriz::print() const {
-    if (rows == 0 && columns == 0) {
-        printf("| empty |\n");
-        return;
-    }
-    const int largura = 9;
-    char buffer[64];
+  if (rows == 0 && columns == 0) {
+    printf("| empty |\n");
+    return;
+  }
+  const int largura = 9;
+  char buffer[64];
 
-    for (int i = 0; i < rows; i++) {
-        printf("| ");
-        for (int j = 0; j < columns; j++) {
-            double valor = getValue(i, j);
-            snprintf(buffer, sizeof(buffer), "%.6f", valor);
-            char* fim = buffer + strlen(buffer) - 1;
-            while (fim > buffer && *fim == '0') {
-                *fim-- = '\0';
-            }
-            if (fim > buffer && *fim == '.') {
-                *fim = '\0';
-            }
-            printf("%*s ", largura, buffer);
-        }
-        printf("|\n");
+  for (int i = 0; i < rows; i++) {
+    printf("| ");
+    for (int j = 0; j < columns; j++) {
+      double valor = getValue(i, j);
+      snprintf(buffer, sizeof(buffer), "%.6f", valor);
+      char *fim = buffer + strlen(buffer) - 1;
+      while (fim > buffer && *fim == '0') {
+        *fim-- = '\0';
+      }
+      if (fim > buffer && *fim == '.') {
+        *fim = '\0';
+      }
+      printf("%*s ", largura, buffer);
     }
+    printf("|\n");
+  }
 }
 
 void Matriz::trocarLinhas(int linha1, int linha2) {
@@ -299,3 +297,14 @@ void Matriz::trocarLinhas(int linha1, int linha2) {
     setValue(linha2, i, temp);
   }
 }
+
+// Matriz Matriz::clonar() {
+// }
+//
+// Matriz Matriz::identity(int n, int m) {
+//   Matriz I(n, m);
+//   for (int i = 0; i < n && i < m; i++) {
+//     I.setValue(i, i, 1);
+//   }
+//   return I;
+// }

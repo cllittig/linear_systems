@@ -48,6 +48,10 @@ public:
     //Métodos auxiliares
     void print() const;
     void trocarLinhas(int linha1, int linha2);
+    Matriz clonar() const;
+
+    static Matriz identity(int n, int m);
+
 };
 
 

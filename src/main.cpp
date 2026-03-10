@@ -1,25 +1,26 @@
 
-#include "metodos/gauss_jordan.hpp"
+#include "metodos/lu.hpp"
 #include <cstdio>
 
 int main() {
 
-    Matriz a({3, 3}, { 
-        3, 0,  2, 
-        2, 0, -2,
-        0, 1,  1,
+    Matriz a({2, 2}, { 
+        3, 1,
+        -6, -4,
     });
 
-// 0.2 0.2 0 
-// -0.2 0.3 1 
-// 0.2 -0.3 0 
+    Matriz b({1, 2}, { 5, 11, });
+
 
     a.print();
 
-    auto resultado = a.inverse();
+    b.print();
+
+    auto resultado = lu::lu(a, b);
 
     printf("\n");
 
     resultado.print();
+
     return 0;
 }
