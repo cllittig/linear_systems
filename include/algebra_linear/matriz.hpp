@@ -10,10 +10,9 @@ private:
     //atributos privados
     int rows;
     int columns;
-    bool isSimetricRec(int i, int j) const;
+    std::vector<double> data;
 
 public:
-    std::vector<double> data;
     //construtor e destrutor
     Matriz();
     Matriz(int rows, int columns);
@@ -52,6 +51,8 @@ public:
 
     static Matriz identity(int n, int m);
 
+    //Método teste da biblioteca FLAME
+    bool testarConexaoFlame() const;
 };
 
 

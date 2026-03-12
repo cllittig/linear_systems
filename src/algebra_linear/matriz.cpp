@@ -1,10 +1,33 @@
-#include "algebra_linear/matriz.hpp"
-#include <cblas.h>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <stdexcept>
+#include <iostream>
+#include <vector>
 #include <tuple>
+#include <stdexcept>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <complex>
+#include <string>
+#include <sstream>
+
+#include "algebra_linear/matriz.hpp"
+
+#include <cblas.h>
+
+#define FLA_ENABLE_EXTERNAL_LAPACK_INTERFACES
+extern "C" {
+    #include <FLAME.h>
+}
+
+// O MURO DE SEGURANÇA: Remove as macros da FLAME imediatamente
+#ifdef min
+  #undef min
+#endif
+#ifdef max
+  #undef max
+#endif
+
+// A PARTIR DAQUI, o código C++ volta ao normal.
 
 // Construtor padrão
 Matriz::Matriz() : rows(0), columns(0) {}
@@ -50,7 +73,7 @@ double Matriz::getValue(int row, int column) const {
 // Métodos de modificação
 
 void Matriz::setValue(int row, int column, double value) {
-  if (row < 0 || row >= rows || columns < 0 || column >= columns) {
+  if (row < 0 || row >= rows || column < 0 || column >= columns) {
     throw std::out_of_range("index out of range");
   }
   data[row * columns + column] = value;
@@ -118,7 +141,7 @@ Matriz Matriz::operator*(const Matriz &other) const {
     for (int j = 0; j < other.getColumns(); j++) {
       double tempSum = 0;
       for (int k = 0; k < columns; k++) {
-        tempSum += getValue(i, j) * other.getValue(k, j);
+        tempSum += getValue(i, k) * other.getValue(k, j);
       }
       responseMatriz.setValue(i, j, tempSum);
     }
@@ -152,17 +175,13 @@ Matriz Matriz::transpose() const {
 bool Matriz::isSimetric() const {
   if (rows != columns)
     return false;
-  return isSimetricRec(0, 0);
-}
-// Função auxiliar para descobrir simetria na matriz
-bool Matriz::isSimetricRec(int i, int j) const {
-  if (i >= rows)
-    return true;
-  if (j >= columns)
-    return isSimetricRec(i + 1, 0);
-  if (getValue(i, j) != getValue(j, i))
-    return false;
-  return isSimetricRec(i, j + 1);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) {
+      if (std::abs(getValue(i, j) - getValue(j, i)) > 1e-9)
+        return false;
+    }
+  }
+  return true;
 }
 
 // Cálculo de determinante  ---- ainda falta terminar
@@ -296,6 +315,26 @@ void Matriz::trocarLinhas(int linha1, int linha2) {
     setValue(linha1, i, getValue(linha2, i));
     setValue(linha2, i, temp);
   }
+
+
+}
+
+bool Matriz::testarConexaoFlame() const {
+
+	FLA_Init();
+
+	printf(">>> SUCESS: CONEXAO LIBFLAME\n");
+	
+	printf(">>> INITIALIZING: VERIFICACAO DE OBJETOOS FLAME\n");
+	
+	FLA_Obj teste;
+FLA_Obj_create(FLA_DOUBLE, 1 ,1, 0, 0, &teste);
+
+	printf("SUCESS: OBJETOS OPERANDO NORMALMENTE");
+
+	FLA_Obj_free(&teste);
+	FLA_Finalize();
+	return true;
 }
 
 // Matriz Matriz::clonar() {

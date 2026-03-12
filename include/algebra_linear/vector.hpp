@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cstdio>
+#include "algebra_linear/matriz.hpp"
 
 class Vector{
 
@@ -29,7 +30,6 @@ public:
 
     //operações com vetores
     bool equality(const Vector& other) const;
-    Vector assigment(const Vector& other) const;
     Vector operator+(const Vector& other) const;
     Vector operator*(const int escale) const;
     Vector operator*(const Vector& other) const;
@@ -38,6 +38,8 @@ public:
     double euclidian_length() const;
     double linear_product(const Vector& other) const;
 };
+
+Vector multiplicar(const Matriz& A, const Vector& v);
 
 
 #endif //VECTOR_HPP
