@@ -13,6 +13,7 @@
 
 //metodos numericos
 #include "metodos/cholesky.hpp"
+#include "metodos/conjugate_gradient.hpp"
 
 // retirando a definição de min e max, evitando conflito com a lib flame
 #undef min
@@ -20,35 +21,44 @@
 
 //função main
 int main() {
-	try {
-        // 1. Criar uma matriz A (3x3) simétrica e definida positiva
-        // Exemplo: 
-        // [ 4  12 -16 ]
-        // [ 12 37 -43 ]
-        // [-16 -43 98 ]
+    try {
+        // Entrada do sistema linear Ax = b
         Matriz A(3, 3);
         A.setValue(0, 0, 4);   A.setValue(0, 1, 12);  A.setValue(0, 2, -16);
         A.setValue(1, 0, 12);  A.setValue(1, 1, 37);  A.setValue(1, 2, -43);
         A.setValue(2, 0, -16); A.setValue(2, 1, -43); A.setValue(2, 2, 98);
 
-        // 2. Criar um vetor b para o sistema Ax = b
-        // Se quisermos que a resposta (x) seja [1, 1, 1], o b deve ser:
         Vector b(3);
-        b.setValue(0, 0);   // 4(1) + 12(1) - 16(1) = 0
-        b.setValue(1, 6);   // 12(1) + 37(1) - 43(1) = 6
-        b.setValue(2, 39);  // -16(1) - 43(1) + 98(1) = 39
+        b.setValue(0, 0);
+        b.setValue(1, 6);
+        b.setValue(2, 39);
 
-        std::cout << "--- Matriz A ---" << std::endl;
-        A.print(); // Supondo que sua classe matriz tenha o método print
+        const double tolerance = 1e-10;
+        const int maxIterations = 100;
 
-        std::cout << "\n--- Resolvendo Ax = b ---" << std::endl;
-        
-        // 3. Chamar sua função solve
-        Vector x = cholesky::solve(A, b);
+        std::cout << "--- Entradas do Gradiente Conjugado ---" << std::endl;
+        std::cout << "Matriz A:" << std::endl;
+        A.print();
+        std::cout << "Vetor b:" << std::endl;
+        for (int i = 0; i < b.getLength(); ++i) {
+            std::cout << "b[" << i << "] = " << b.getValue(i) << std::endl;
+        }
+        std::cout << "tolerance = " << tolerance << std::endl;
+        std::cout << "maxIterations = " << maxIterations << std::endl;
 
-        std::cout << "\n--- Resultado do Vetor x ---" << std::endl;
+        std::cout << "\n--- Resolvendo Ax = b com Gradiente Conjugado ---" << std::endl;
+        Vector x = conjugate_gradient::solve(A, b, tolerance, maxIterations);
+
+        std::cout << "\n--- Saida (vetor x) ---" << std::endl;
         for (int i = 0; i < x.getLength(); i++) {
             std::cout << "x[" << i << "] = " << x.getValue(i) << std::endl;
+        }
+
+        std::cout << "\n--- Verificacao rapida (A*x) ---" << std::endl;
+        Vector Ax = multiplicar(A, x);
+        for (int i = 0; i < Ax.getLength(); ++i) {
+            std::cout << "A*x[" << i << "] = " << Ax.getValue(i)
+                      << " | b[" << i << "] = " << b.getValue(i) << std::endl;
         }
 
     } catch (const std::exception& e) {
