@@ -1,69 +1,30 @@
-// bibliotecas padrão 
-#include <iostream>
-#include <vector>
-#include <cstdio>
-#include <complex> 
-
-// bibliotecas auxiliares externas
-#include <FLAME.h>
-
-//classes referentes a algebra linear	
 #include "algebra_linear/matriz.hpp"
-#include "algebra_linear/vector.hpp"
+#include "metodos/gauss_seidel.hpp"
 
-//metodos numericos
-#include "metodos/cholesky.hpp"
-#include "metodos/conjugate_gradient.hpp"
-
-// retirando a definição de min e max, evitando conflito com a lib flame
 #undef min
 #undef max
 
-//função main
 int main() {
-    try {
-        // Entrada do sistema linear Ax = b
-        Matriz A(3, 3);
-        A.setValue(0, 0, 4);   A.setValue(0, 1, 12);  A.setValue(0, 2, -16);
-        A.setValue(1, 0, 12);  A.setValue(1, 1, 37);  A.setValue(1, 2, -43);
-        A.setValue(2, 0, -16); A.setValue(2, 1, -43); A.setValue(2, 2, 98);
+    // 10x - y + 2z = 6
+    //  -x + 11y - z = 25
+    //  2x -  y + 10z = -11
 
-        Vector b(3);
-        b.setValue(0, 0);
-        b.setValue(1, 6);
-        b.setValue(2, 39);
+    // esperado: x=1, y=2, z=-1
 
-        const double tolerance = 1e-10;
-        const int maxIterations = 100;
+    Matriz A(3, 3);
+    double dadosA[] = { 10, -1,  2,
+                        -1, 11, -1,
+                         2, -1, 10 };
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            A.setValue(i, j, dadosA[i * 3 + j]);
 
-        std::cout << "--- Entradas do Gradiente Conjugado ---" << std::endl;
-        std::cout << "Matriz A:" << std::endl;
-        A.print();
-        std::cout << "Vetor b:" << std::endl;
-        for (int i = 0; i < b.getLength(); ++i) {
-            std::cout << "b[" << i << "] = " << b.getValue(i) << std::endl;
-        }
-        std::cout << "tolerance = " << tolerance << std::endl;
-        std::cout << "maxIterations = " << maxIterations << std::endl;
+    Matriz b(3, 1);
+    b.setValue(0, 0,   6);
+    b.setValue(1, 0,  25);
+    b.setValue(2, 0, -11);
 
-        std::cout << "\n--- Resolvendo Ax = b com Gradiente Conjugado ---" << std::endl;
-        Vector x = conjugate_gradient::solve(A, b, tolerance, maxIterations);
-
-        std::cout << "\n--- Saida (vetor x) ---" << std::endl;
-        for (int i = 0; i < x.getLength(); i++) {
-            std::cout << "x[" << i << "] = " << x.getValue(i) << std::endl;
-        }
-
-        std::cout << "\n--- Verificacao rapida (A*x) ---" << std::endl;
-        Vector Ax = multiplicar(A, x);
-        for (int i = 0; i < Ax.getLength(); ++i) {
-            std::cout << "A*x[" << i << "] = " << Ax.getValue(i)
-                      << " | b[" << i << "] = " << b.getValue(i) << std::endl;
-        }
-
-    } catch (const std::exception& e) {
-        std::cerr << "Erro: " << e.what() << std::endl;
-    }
-
-    return 0;
+    Matriz x = gaussseidel::gauss_seidel(A, b);
+    x.print(); // [1, 2, -1]
+    // Precisamos de testes urgentemente!!!!!!
 }

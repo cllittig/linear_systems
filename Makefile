@@ -2,7 +2,7 @@ CXX := g++
 # -Iinclude faz com que o compilador busque dentro da pasta include
 CFLAGS := -std=c++17 -O3 -Wall -Wextra -Iinclude -MMD -MP
 # LDFLAGS corrigido e pronto para o linker
-LDFLAGS := -lflame -lopenblas -lm -lpthread
+LDFLAGS := -lopenblas -lm -lpthread
 
 # Busca todos os arquivos .cpp em src e suas subpastas
 SOURCE := $(shell find src -name '*.cpp')

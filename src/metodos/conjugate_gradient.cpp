@@ -26,14 +26,15 @@ void addScaledInPlace(Vector &target, const Vector &direction, double scale) {
  * @param tolerance     Critério de parada (norma relativa do resíduo).
  * @param maxIterations Número máximo de iterações permitidas.
  * @param x0            Chute inicial (default: vetor zero).
- * @return              Vetor solução x tal que ||b - A*x|| / ||b|| <= tolerance.
+ * @return              Vetor solução x tal que ||b - A*x|| / ||b|| <=
+ * tolerance.
  *
  * @throws std::invalid_argument se os parâmetros forem inválidos.
  * @throws std::runtime_error    se não convergir ou ocorrer falha numérica.
  */
 Vector solve(const Matriz &A, const Vector &b, double tolerance,
-             int maxIterations, const Vector *x0 = nullptr) {
-
+             int maxIterations) {
+  const Vector *x0 = nullptr;
   // ------------------------------------------------------------------
   // Validações
   // ------------------------------------------------------------------
@@ -76,8 +77,8 @@ Vector solve(const Matriz &A, const Vector &b, double tolerance,
   Vector p = r;
 
   // Norma inicial do resíduo — usada no critério de parada relativo
-  double rsold         = r.linear_product(r);
-  const double r0norm  = std::sqrt(rsold);
+  double rsold = r.linear_product(r);
+  const double r0norm = std::sqrt(rsold);
 
   // Sistema já satisfaz a tolerância no chute inicial
   if (r0norm <= tolerance) {
@@ -105,8 +106,8 @@ Vector solve(const Matriz &A, const Vector &b, double tolerance,
 
     double alpha = rsold / denominator;
 
-    addScaledInPlace(x, p,   alpha);  // x = x + α·p
-    addScaledInPlace(r, Ap, -alpha);  // r = r - α·A·p
+    addScaledInPlace(x, p, alpha);   // x = x + α·p
+    addScaledInPlace(r, Ap, -alpha); // r = r - α·A·p
 
     double rsnew = r.linear_product(r);
 

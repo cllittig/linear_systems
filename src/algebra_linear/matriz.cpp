@@ -1,14 +1,14 @@
-#include <iostream>
-#include <vector>
-#include <tuple>
-#include <stdexcept>
-#include <cmath>
-#include <cstring>
-#include <cstdio>
 #include <algorithm>
+#include <cmath>
 #include <complex>
-#include <string>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include "algebra_linear/matriz.hpp"
 
@@ -16,15 +16,15 @@
 
 #define FLA_ENABLE_EXTERNAL_LAPACK_INTERFACES
 extern "C" {
-    #include <FLAME.h>
+// #include <FLAME.h>
 }
 
 // O MURO DE SEGURANÇA: Remove as macros da FLAME imediatamente
 #ifdef min
-  #undef min
+#undef min
 #endif
 #ifdef max
-  #undef max
+#undef max
 #endif
 
 // A PARTIR DAQUI, o código C++ volta ao normal.
@@ -315,27 +315,25 @@ void Matriz::trocarLinhas(int linha1, int linha2) {
     setValue(linha1, i, getValue(linha2, i));
     setValue(linha2, i, temp);
   }
-
-
 }
 
-bool Matriz::testarConexaoFlame() const {
-
-	FLA_Init();
-
-	printf(">>> SUCESS: CONEXAO LIBFLAME\n");
-	
-	printf(">>> INITIALIZING: VERIFICACAO DE OBJETOOS FLAME\n");
-	
-	FLA_Obj teste;
-FLA_Obj_create(FLA_DOUBLE, 1 ,1, 0, 0, &teste);
-
-	printf("SUCESS: OBJETOS OPERANDO NORMALMENTE");
-
-	FLA_Obj_free(&teste);
-	FLA_Finalize();
-	return true;
-}
+// bool Matriz::testarConexaoFlame() const {
+//
+//   FLA_Init();
+//
+//   printf(">>> SUCESS: CONEXAO LIBFLAME\n");
+//
+//   printf(">>> INITIALIZING: VERIFICACAO DE OBJETOOS FLAME\n");
+//
+//   FLA_Obj teste;
+//   FLA_Obj_create(FLA_DOUBLE, 1, 1, 0, 0, &teste);
+//
+//   printf("SUCESS: OBJETOS OPERANDO NORMALMENTE");
+//
+//   FLA_Obj_free(&teste);
+//   FLA_Finalize();
+//   return true;
+// }
 
 // Matriz Matriz::clonar() {
 // }
