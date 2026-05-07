@@ -12,7 +12,7 @@ Matriz lu(const Matriz &A, const Matriz &b) {
   }
   auto n = A.getColumns();
   Matriz lu(n, n);
-  auto sum = 0;
+  double sum = 0.0;
   for (auto i = 0; i < n; i++) {
     for (auto j = i; j < n; j++) {
       sum = 0;
@@ -25,8 +25,7 @@ Matriz lu(const Matriz &A, const Matriz &b) {
       for (auto k = 0; k < i; k++) {
         sum += lu.getValue(j, k) * lu.getValue(k, i);
       }
-      lu.setValue(j, i,
-                  (1 / lu.getValue(i, i)) * A.getValue(j, i) - sum); // ????
+      lu.setValue(j, i, (A.getValue(j, i) - sum) / lu.getValue(i, i));
     }
   }
   // lu = L+U-I
@@ -42,7 +41,7 @@ Matriz lu(const Matriz &A, const Matriz &b) {
   Matriz x(1, n);
   for (auto i = n - 1; i >= 0; i--) {
     sum = 0;
-    for (auto k = i + 1; k < i; k++)
+    for (auto k = i + 1; k < n; k++)
       sum += lu.getValue(i, k) * x.getValue(0, k);
     x.setValue(0, i, (1 / lu.getValue(i, i)) * (y.getValue(0, i) - sum));
   }
