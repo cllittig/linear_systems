@@ -1,4 +1,3 @@
-#pragma once
 #include "metodos/conjugate_gradient.hpp"
 #include <cmath>
 #include <stdexcept>
@@ -32,7 +31,7 @@ void addScaledInPlace(Vector &target, const Vector &direction, double scale) {
  * @throws std::runtime_error    se não convergir ou ocorrer falha numérica.
  */
 Vector solve(const Matriz &A, const Vector &b, double tolerance,
-             int maxIterations, const Vector *x0 = nullptr) {
+             int maxIterations, const Vector *x0) {
 
   // ------------------------------------------------------------------
   // Validações

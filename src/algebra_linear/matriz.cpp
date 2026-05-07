@@ -337,13 +337,12 @@ FLA_Obj_create(FLA_DOUBLE, 1 ,1, 0, 0, &teste);
 	return true;
 }
 
-// Matriz Matriz::clonar() {
-// }
-//
-// Matriz Matriz::identity(int n, int m) {
-//   Matriz I(n, m);
-//   for (int i = 0; i < n && i < m; i++) {
-//     I.setValue(i, i, 1);
-//   }
-//   return I;
-// }
+Matriz Matriz::clonar() const {
+    Matriz copia(this->rows, this->columns);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            copia.setValue(i, j, this->getValue(i, j));
+        }
+    }
+    return copia;
+}
