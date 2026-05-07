@@ -1,6 +1,7 @@
 build
 compile_commands.json
 sistema_linear
+programa_tcc
 main
 notas.md
 .cache/*
