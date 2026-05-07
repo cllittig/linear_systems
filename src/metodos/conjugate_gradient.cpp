@@ -33,7 +33,6 @@ void addScaledInPlace(Vector &target, const Vector &direction, double scale) {
  */
 Vector solve(const Matriz &A, const Vector &b, double tolerance,
              int maxIterations, const Vector *x0) {
-             int maxIterations, const Vector *x0) {
   // ------------------------------------------------------------------
   // Validações
   // ------------------------------------------------------------------
