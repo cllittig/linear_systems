@@ -7,7 +7,7 @@
 namespace conjugate_gradient {
 
 Vector solve(const Matriz &A, const Vector &b, double tolerance = 1e-10,
-             int maxIterations = 1000);
+             int maxIterations = 1000, const Vector* x0 = nullptr);
 
 } // namespace conjugate_gradient
 
