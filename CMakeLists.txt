@@ -51,6 +51,8 @@ if(BUILD_TESTS)
         tests/test_vector.cpp
         tests/test_vector_advanced.cpp
         tests/test_conjugate_gradient.cpp
+        tests/test_compare_with_octave.cpp
+        tests/test_compare_all_methods.cpp
         tests/test_numerical_methods.cpp
         src/algebra_linear/matriz_identity.cpp
         ${SOURCES_ALGEBRA}
@@ -68,3 +70,21 @@ if(BUILD_TESTS)
 
     add_test(NAME LinearSystemsTests COMMAND programa_testes)
 endif()
+
+add_executable(bench_compare
+    src/bench/bench_compare_octave.cpp
+    ${SOURCES_ALGEBRA}
+    ${SOURCES_METODOS}
+    ${SOURCES_UTILS}
+)
+
+target_link_libraries(bench_compare PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread flame openblas)
+
+add_executable(bench_fair
+    src/bench/bench_fair_comparison.cpp
+    ${SOURCES_ALGEBRA}
+    ${SOURCES_METODOS}
+    ${SOURCES_UTILS}
+)
+
+target_link_libraries(bench_fair PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread flame openblas)

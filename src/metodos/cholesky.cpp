@@ -75,5 +75,23 @@ namespace cholesky{
 
 		return x;
 	}
+
+	Matriz solve(const Matriz &A, const Matriz &B) {
+		// Solve multiple RHS using Cholesky factorization
+		if (B.getRows() != A.getRows()) throw std::invalid_argument("Dimensoes incompativeis entre A e B.");
+		Matriz L = cholesky(A);
+		Matriz Lt = L.transpose();
+		int n = A.getRows();
+		int m = B.getColumns();
+		Matriz X(n, m);
+		for (int col = 0; col < m; ++col) {
+			Vector bcol(n);
+			for (int i = 0; i < n; ++i) bcol.setValue(i, B.getValue(i, col));
+			Vector y = forwardSubstituition(L, bcol);
+			Vector x = backwardSubstitution(Lt, y);
+			for (int i = 0; i < n; ++i) X.setValue(i, col, x.getValue(i));
+		}
+		return X;
+	}
 }
 

@@ -9,6 +9,8 @@ namespace cholesky{
 	Vector forwardSubstituition(const Matriz &L, const Vector &b);
 	Vector backwardSubstitution(const Matriz &Lt, const Vector &y);	
 	Vector solve(const Matriz &A, const Vector &b);
+	// Multi-RHS
+	Matriz solve(const Matriz &A, const Matriz &B);
 
 }
 

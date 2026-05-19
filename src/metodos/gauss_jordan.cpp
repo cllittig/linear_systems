@@ -1,6 +1,7 @@
 
 #include "algebra_linear/matriz.hpp"
 #include <stdexcept>
+#include "algebra_linear/vector.hpp"
 
 namespace gaussjordan {
 
@@ -73,4 +74,16 @@ Matriz gauss_jordan(const Matriz &A, const Matriz &b) {
   return x;
 }
 
-}; // namespace gaussjordan
+Vector solve(const Matriz &A, const Vector &b) {
+  if (A.getRows() != b.getLength()) {
+    throw std::runtime_error("Dimensoes incompativeis entre A e b.");
+  }
+  Matriz bmat(A.getRows(), 1);
+  for (int i = 0; i < b.getLength(); ++i) bmat.setValue(i, 0, b.getValue(i));
+  Matriz x = gauss_jordan(A, bmat);
+  Vector out(b.getLength());
+  for (int i = 0; i < out.getLength(); ++i) out.setValue(i, x.getValue(i, 0));
+  return out;
+}
+
+} // namespace gaussjordan

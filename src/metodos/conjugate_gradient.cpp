@@ -1,6 +1,7 @@
 #include "metodos/conjugate_gradient.hpp"
 #include <cmath>
 #include <stdexcept>
+#include "metodos/solver_utils.hpp"
 
 namespace conjugate_gradient {
 
@@ -31,101 +32,120 @@ void addScaledInPlace(Vector &target, const Vector &direction, double scale) {
  * @throws std::invalid_argument se os parâmetros forem inválidos.
  * @throws std::runtime_error    se não convergir ou ocorrer falha numérica.
  */
+// Helper: retrieve a column vector solution from a Matriz result (if B was empty fallback)
+// We'll implement multi-RHS solve and single-RHS by delegation.
+
+// Multi-RHS implementation
+Matriz solve(const Matriz &A, const Matriz &B, double tolerance,
+             int maxIterations, solver::IterationInfo* info, bool useJacobiPrecond) {
+  if (!A.isSquare()) throw std::invalid_argument("A matriz A deve ser quadrada.");
+  if (B.getRows() != 0 && A.getRows() != B.getRows())
+    throw std::invalid_argument("Dimensoes incompativeis entre A e B.");
+
+  int n = A.getRows();
+  int m = (B.getRows() == 0) ? 0 : B.getColumns();
+  if (m == 0) {
+    // No B provided: this function was called as fallback; return empty
+    return Matriz();
+  }
+
+  Matriz X(n, m);
+  for (int col = 0; col < m; ++col) {
+    Vector bcol(n);
+    for (int i = 0; i < n; ++i) bcol.setValue(i, B.getValue(i, col));
+    // call vector CG with preconditioner flag and optional info ignored per-column
+    solver::IterationInfo colInfo;
+    Vector x = solve(A, bcol, tolerance, maxIterations, nullptr, &colInfo, useJacobiPrecond);
+    for (int i = 0; i < n; ++i) X.setValue(i, col, x.getValue(i));
+    if (info) {
+      info->iterations += colInfo.iterations;
+      info->final_residual_norm = std::max(info->final_residual_norm, colInfo.final_residual_norm);
+      info->converged = info->converged && colInfo.converged;
+    }
+  }
+  return X;
+}
+
+// New vector solve with diagnostics and optional Jacobi preconditioning
 Vector solve(const Matriz &A, const Vector &b, double tolerance,
-             int maxIterations, const Vector *x0) {
-  // ------------------------------------------------------------------
-  // Validações
-  // ------------------------------------------------------------------
+             int maxIterations, const Vector *x0, solver::IterationInfo* info, bool useJacobiPrecond) {
   if (!A.isSquare()) {
     throw std::invalid_argument("A matriz A deve ser quadrada.");
-  }
-  if (!A.isSimetric()) {
-    throw std::invalid_argument("A matriz A deve ser simetrica.");
   }
   if (A.getRows() != b.getLength()) {
     throw std::invalid_argument("Dimensoes incompativeis entre A e b.");
   }
-  if (tolerance <= 0.0) {
-    throw std::invalid_argument("A tolerancia deve ser positiva.");
-  }
-  if (maxIterations <= 0) {
-    throw std::invalid_argument("maxIterations deve ser positivo.");
-  }
+  if (tolerance <= 0.0) throw std::invalid_argument("A tolerancia deve ser positiva.");
+  if (maxIterations <= 0) throw std::invalid_argument("maxIterations deve ser positivo.");
 
-  const int n = b.getLength();
+  int n = b.getLength();
+  Vector x(n);
+  if (x0) x = *x0;
 
-  // ------------------------------------------------------------------
-  // Inicialização: suporta chute inicial x0 arbitrário
-  // ------------------------------------------------------------------
-  Vector x(n); // x = 0 por padrão
-  if (x0 != nullptr) {
-    if (x0->getLength() != n) {
-      throw std::invalid_argument("x0 tem dimensao incompativel com b.");
-    }
-    x = *x0;
-  }
-
-  // r₀ = b - A·x₀  (se x₀ = 0, r₀ = b)
   Vector r = b;
-  if (x0 != nullptr) {
+  if (x0) {
     Vector Ax0 = multiplicar(A, x);
-    addScaledInPlace(r, Ax0, -1.0); // r = b - A*x0
+    addScaledInPlace(r, Ax0, -1.0);
   }
 
-  Vector p = r;
+  Vector z(n);
+  Vector p(n);
+  if (useJacobiPrecond) {
+    // Jacobi preconditioner: M = diag(A)
+    for (int i = 0; i < n; ++i) {
+      double d = A.getValue(i, i);
+      if (std::abs(d) < 1e-18) throw std::runtime_error("Jacobi preconditioner: diagonal zero.");
+      z.setValue(i, r.getValue(i) / d);
+    }
+    p = z;
+  } else {
+    p = r;
+  }
 
-  // Norma inicial do resíduo — usada no critério de parada relativo
-  double rsold = r.linear_product(r);
-  const double r0norm = std::sqrt(rsold);
-
-  // Sistema já satisfaz a tolerância no chute inicial
+  double rzold = (useJacobiPrecond ? r.linear_product(z) : r.linear_product(r));
+  double r0norm = std::sqrt(r.linear_product(r));
   if (r0norm <= tolerance) {
+    if (info) { info->iterations = 0; info->final_residual_norm = r0norm; info->converged = true; }
     return x;
   }
+  double stopThreshold = tolerance * r0norm;
 
-  // Threshold absoluto baseado na norma inicial (critério relativo)
-  const double stopThreshold = tolerance * r0norm;
-
-  // ------------------------------------------------------------------
-  // Loop principal do Gradiente Conjugado
-  // ------------------------------------------------------------------
-  for (int iteration = 0; iteration < maxIterations; ++iteration) {
-
+  bool converged = false;
+  int iter;
+  for (iter = 0; iter < maxIterations; ++iter) {
     Vector Ap = multiplicar(A, p);
-
-    double denominator = p.linear_product(Ap); // pᵀ A p
-
-    // Guarda numérica: A deve ser definida positiva → pᵀAp > 0
-    if (std::abs(denominator) < 1e-18) {
-      throw std::runtime_error(
-          "Falha numerica no gradiente conjugado: p^T A p ~= 0. "
-          "Verifique se A e definida positiva.");
+    double denom = p.linear_product(Ap);
+    if (std::abs(denom) < 1e-18) {
+      throw std::runtime_error("Falha numerica no gradiente conjugado: p^T A p ~= 0.");
     }
+    double alpha = rzold / denom;
+    addScaledInPlace(x, p, alpha);
+    addScaledInPlace(r, Ap, -alpha);
 
-    double alpha = rsold / denominator;
+    double rnorm = std::sqrt(r.linear_product(r));
+    if (rnorm <= stopThreshold) { converged = true; ++iter; break; }
 
-    addScaledInPlace(x, p, alpha);   // x = x + α·p
-    addScaledInPlace(r, Ap, -alpha); // r = r - α·A·p
-
-    double rsnew = r.linear_product(r);
-
-    // Critério de parada relativo: ‖r‖ ≤ tol · ‖r₀‖
-    if (std::sqrt(rsnew) <= stopThreshold) {
-      return x;
+    if (useJacobiPrecond) {
+      for (int i = 0; i < n; ++i) z.setValue(i, r.getValue(i) / A.getValue(i, i));
+      double rznew = r.linear_product(z);
+      double beta = rznew / rzold;
+      for (int i = 0; i < n; ++i) p.setValue(i, z.getValue(i) + beta * p.getValue(i));
+      rzold = rznew;
+    } else {
+      double rsnew = r.linear_product(r);
+      double beta = rsnew / rzold;
+      for (int i = 0; i < n; ++i) p.setValue(i, r.getValue(i) + beta * p.getValue(i));
+      rzold = rsnew;
     }
-
-    double beta = rsnew / rsold; // β = ‖r_new‖² / ‖r_old‖²
-
-    // p = r + β·p
-    for (int i = 0; i < p.getLength(); ++i) {
-      p.setValue(i, r.getValue(i) + beta * p.getValue(i));
-    }
-
-    rsold = rsnew;
   }
 
-  throw std::runtime_error(
-      "Gradiente conjugado nao convergiu no numero maximo de iteracoes.");
+  if (info) {
+    info->iterations = iter;
+    info->final_residual_norm = std::sqrt(r.linear_product(r));
+    info->converged = converged;
+  }
+  if (!converged) throw std::runtime_error("Gradiente conjugado nao convergiu no numero maximo de iteracoes.");
+  return x;
 }
 
 } // namespace conjugate_gradient
