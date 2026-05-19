@@ -1,5 +1,6 @@
 
 #include "algebra_linear/matriz.hpp"
+#include "algebra_linear/vector.hpp"
 #include <stdexcept>
 
 namespace lu {
@@ -47,4 +48,17 @@ Matriz lu(const Matriz &A, const Matriz &b) {
   }
   return x;
 }
+
+Vector solve(const Matriz &A, const Vector &b) {
+  int n = b.getLength();
+  Matriz b_row(1, n);
+  for (int i = 0; i < n; i++)
+    b_row.setValue(0, i, b.getValue(i));
+  Matriz x_row = lu(A, b_row);
+  Vector x(n);
+  for (int i = 0; i < n; i++)
+    x.setValue(i, x_row.getValue(0, i));
+  return x;
+}
+
 } // namespace lu

@@ -1,5 +1,6 @@
 
 #include "algebra_linear/matriz.hpp"
+#include "algebra_linear/vector.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -56,4 +57,16 @@ Matriz gauss_seidel(const Matriz &A, const Matriz &b) {
   throw std::runtime_error("Não convergiu no número máximo de iterações.");
 }
 
-} // namespace guassseidel
+Vector solve(const Matriz &A, const Vector &b) {
+  int n = b.getLength();
+  Matriz b_col(n, 1);
+  for (int i = 0; i < n; i++)
+    b_col.setValue(i, 0, b.getValue(i));
+  Matriz x_col = gauss_seidel(A, b_col);
+  Vector x(n);
+  for (int i = 0; i < n; i++)
+    x.setValue(i, x_col.getValue(i, 0));
+  return x;
+}
+
+} // namespace gaussseidel

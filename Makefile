@@ -24,7 +24,7 @@ build/%.o: src/%.cpp
 
 # Limpeza
 clean:
-	rm -rf build $(LIB)
+	rm -rf build $(LIB) $(PLOT_CSV) $(PLOT_PNG)
 
 # --- Tests ---
 # Lista todos os .cpp em tests/ e define os binários correspondentes em build/tests/
@@ -49,4 +49,22 @@ build/tests/%: tests/%.cpp $(LIB)
 
 -include $(DEPS)
 
-.PHONY: all clean test
+# --- Benchmark ---
+BENCHMARK_BIN := build/benchmark
+
+benchmark: $(BENCHMARK_BIN)
+	./$(BENCHMARK_BIN)
+
+$(BENCHMARK_BIN): tests/benchmark.cpp $(LIB)
+	@mkdir -p build
+	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
+
+PYTHON    := plot/.venv/bin/python
+PLOT_CSV  := plot/data.csv
+PLOT_PNG  := plot/data.png
+
+$(PLOT_PNG): $(BENCHMARK_BIN) plot/plot.py
+	./$(BENCHMARK_BIN) > $(PLOT_CSV)
+	$(PYTHON) plot/plot.py $(PLOT_CSV)
+
+.PHONY: all clean test benchmark
