@@ -12,6 +12,7 @@ Matriz lu(const Matriz &A, const Matriz &b) {
   if (A.getColumns() != A.getRows()) {
     throw std::runtime_error("matriz precisa ser quadrada");
   }
+<<<<<<< HEAD
   int n = A.getRows();
 
   // determine b shape
@@ -41,6 +42,17 @@ Matriz lu(const Matriz &A, const Matriz &b) {
     } else {
       // b is 1 x n row, interpret as column vector
       aug[i][n + 0] = b.getValue(0, i);
+=======
+  auto n = A.getColumns();
+  Matriz lu(n, n);
+  double sum = 0.0;
+  for (auto i = 0; i < n; i++) {
+    for (auto j = i; j < n; j++) {
+      sum = 0;
+      for (auto k = 0; k < i; k++)
+        sum += lu.getValue(i, k) * lu.getValue(k, j);
+      lu.setValue(i, j, A.getValue(i, j) - sum);
+>>>>>>> a0306ec7ad214946c9df52e0635fa4c496afe0d2
     }
   }
 
@@ -54,6 +66,7 @@ Matriz lu(const Matriz &A, const Matriz &b) {
         maxv = fabs(aug[i][k]);
         piv = i;
       }
+<<<<<<< HEAD
     }
     if (fabs(maxv) < 1e-12) throw std::runtime_error("Matriz singular ou quase singular.");
     if (piv != k) std::swap(aug[piv], aug[k]);
@@ -62,6 +75,9 @@ Matriz lu(const Matriz &A, const Matriz &b) {
       double factor = aug[i][k] / aug[k][k];
       aug[i][k] = 0.0;
       for (int j = k + 1; j < cols_aug; ++j) aug[i][j] -= factor * aug[k][j];
+=======
+      lu.setValue(j, i, (A.getValue(j, i) - sum) / lu.getValue(i, i));
+>>>>>>> a0306ec7ad214946c9df52e0635fa4c496afe0d2
     }
   }
 
@@ -76,12 +92,21 @@ Matriz lu(const Matriz &A, const Matriz &b) {
     }
     for (int i = 0; i < n; ++i) X.setValue(i, col, x[i]);
   }
+<<<<<<< HEAD
 
   // if original b was 1 x n row (bm_rows==1 && bm_cols==n), return 1 x n row as before
   if (bm_rows == 1 && bm_cols == n) {
     Matriz out(1, n);
     for (int j = 0; j < n; ++j) out.setValue(0, j, X.getValue(j, 0));
     return out;
+=======
+  Matriz x(1, n);
+  for (auto i = n - 1; i >= 0; i--) {
+    sum = 0;
+    for (auto k = i + 1; k < n; k++)
+      sum += lu.getValue(i, k) * x.getValue(0, k);
+    x.setValue(0, i, (1 / lu.getValue(i, i)) * (y.getValue(0, i) - sum));
+>>>>>>> a0306ec7ad214946c9df52e0635fa4c496afe0d2
   }
 
   return X;
@@ -101,4 +126,17 @@ Vector solve(const Matriz &A, const Vector &b) {
   for (int i = 0; i < x.getLength(); ++i) x.setValue(i, xmat.getValue(i, 0));
   return x;
 }
+
+Vector solve(const Matriz &A, const Vector &b) {
+  int n = b.getLength();
+  Matriz b_row(1, n);
+  for (int i = 0; i < n; i++)
+    b_row.setValue(0, i, b.getValue(i));
+  Matriz x_row = lu(A, b_row);
+  Vector x(n);
+  for (int i = 0; i < n; i++)
+    x.setValue(i, x_row.getValue(0, i));
+  return x;
+}
+
 } // namespace lu

@@ -7,3 +7,5 @@ notas.md
 .cache/*
 *.a
 grav
+plot/data.csv
+plot/data.png
