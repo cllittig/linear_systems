@@ -48,8 +48,8 @@ bool Vector::equality(const Vector& other)const{
         return false;
     }
 
-    for(int i =0; i<length; i++){
-        if(data[i] != other.getValue(i))
+    for (int i = 0; i < length; ++i) {
+        if (data[i] != other.getValue(i))
             return false;
     }
 
@@ -62,7 +62,7 @@ Vector Vector::operator+(const Vector& other) const {
     
     Vector responseVector(length);
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; ++i) {
         double sum = other.getValue(i) + getValue(i);
         responseVector.setValue(i, sum);
     }
@@ -72,24 +72,23 @@ Vector Vector::operator+(const Vector& other) const {
 }
 
 
-Vector Vector::operator*(const int escale) const{
+Vector Vector::operator*(double scale) const{
     
     Vector responseVector(length);
 
-    for(int i=0; i<length; i++){
-        responseVector.setValue(i, getValue(i)*escale);
+    for(int i = 0; i < length; ++i){
+        responseVector.setValue(i, getValue(i) * scale);
     }
 
     return responseVector;
 }
 
 
-Vector Vector::operator-(const Vector& other) const{
-    
+Vector Vector::operator-(const Vector& other) const {
     Vector responseVector(length);
 
-    for(int i=0; i<length; i++){
-        double sub =getValue(i) - other.getValue(i);
+    for (int i = 0; i < length; ++i) {
+        double sub = getValue(i) - other.getValue(i);
         responseVector.setValue(i, sub);
     }
 
@@ -97,19 +96,18 @@ Vector Vector::operator-(const Vector& other) const{
 
 }
 
-Vector Vector::operator*(const Vector& other) const{
+Vector Vector::operator*(const Vector& other) const {
     Vector responseVector(length);
 
-    for(int i=0; i<length; i++){
-        double mult =getValue(i) * other.getValue(i);
+    for (int i = 0; i < length; ++i) {
+        double mult = getValue(i) * other.getValue(i);
         responseVector.setValue(i, mult);
     }
 
     return responseVector;
 }
 
-Vector Vector::axpy(const Vector& y, double alpha) const{
-
+Vector Vector::axpy(const Vector& y, double alpha) const {
     return (*this) * alpha + y;
 
 }
@@ -128,7 +126,7 @@ double Vector::linear_product(const Vector& other) const {
     if (other.getLength() != length)
         throw std::invalid_argument("Vectors must have the same length");
     double result = 0.0;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; ++i) {
         result += data[i] * other.getValue(i);
     }
     return result;

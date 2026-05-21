@@ -51,8 +51,6 @@ public:
 
     static Matriz identity(int n, int m);
 
-    //Método teste da biblioteca FLAME
-    bool testarConexaoFlame() const;
 };
 
 

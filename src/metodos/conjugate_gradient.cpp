@@ -50,6 +50,11 @@ Matriz solve(const Matriz &A, const Matriz &B, double tolerance,
   }
 
   Matriz X(n, m);
+  if (info) {
+    info->iterations = 0;
+    info->final_residual_norm = 0.0;
+    info->converged = true;
+  }
   for (int col = 0; col < m; ++col) {
     Vector bcol(n);
     for (int i = 0; i < n; ++i) bcol.setValue(i, B.getValue(i, col));
@@ -80,7 +85,10 @@ Vector solve(const Matriz &A, const Vector &b, double tolerance,
 
   int n = b.getLength();
   Vector x(n);
-  if (x0) x = *x0;
+  if (x0) {
+    if (x0->getLength() != n) throw std::invalid_argument("x0 deve ter o mesmo comprimento que b.");
+    x = *x0;
+  }
 
   Vector r = b;
   if (x0) {
@@ -115,8 +123,12 @@ Vector solve(const Matriz &A, const Vector &b, double tolerance,
   for (iter = 0; iter < maxIterations; ++iter) {
     Vector Ap = multiplicar(A, p);
     double denom = p.linear_product(Ap);
-    if (std::abs(denom) < 1e-18) {
-      throw std::runtime_error("Falha numerica no gradiente conjugado: p^T A p ~= 0.");
+    double denom_abs = std::abs(denom);
+    double p_norm = std::sqrt(p.linear_product(p));
+    double Ap_norm = std::sqrt(Ap.linear_product(Ap));
+    double rel_eps = 1e-18;
+    if (denom_abs < rel_eps * (p_norm * Ap_norm + 1e-300)) {
+      throw std::runtime_error("Falha numerica no gradiente conjugado: p^T A p muito pequeno ou nulo (possivel indefinicao numerica).");
     }
     double alpha = rzold / denom;
     addScaledInPlace(x, p, alpha);
@@ -126,7 +138,11 @@ Vector solve(const Matriz &A, const Vector &b, double tolerance,
     if (rnorm <= stopThreshold) { converged = true; ++iter; break; }
 
     if (useJacobiPrecond) {
-      for (int i = 0; i < n; ++i) z.setValue(i, r.getValue(i) / A.getValue(i, i));
+      for (int i = 0; i < n; ++i) {
+        double d = A.getValue(i, i);
+        if (std::abs(d) < 1e-18) throw std::runtime_error("Jacobi preconditioner: diagonal zero durante iteracao.");
+        z.setValue(i, r.getValue(i) / d);
+      }
       double rznew = r.linear_product(z);
       double beta = rznew / rzold;
       for (int i = 0; i < n; ++i) p.setValue(i, z.getValue(i) + beta * p.getValue(i));
