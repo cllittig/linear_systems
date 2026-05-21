@@ -1,6 +1,7 @@
 
 #include "algebra_linear/matriz.hpp"
 #include <stdexcept>
+#include <limits>
 #include "algebra_linear/vector.hpp"
 
 namespace gaussjordan {
@@ -20,44 +21,53 @@ Matriz gauss_jordan(const Matriz &A, const Matriz &b) {
   // [A | b]
   Matriz augmented(n, n + m);
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       augmented.setValue(i, j, A.getValue(i, j));
     }
-    for (int j = 0; j < m; j++) {
+    for (int j = 0; j < m; ++j) {
       augmented.setValue(i, j + n, b.getValue(i, j));
     }
   }
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; ++i) {
     double pivot = augmented.getValue(i, i);
 
-    if (std::abs(pivot) < 1e-9) {
+    // Relative pivot check: compute row maximum and use machine epsilon scaled threshold
+    double row_max = 0.0;
+    for (int j = 0; j < n + m; ++j) row_max = std::max(row_max, std::abs(augmented.getValue(i, j)));
+    if (row_max == 0.0) {
+      throw std::runtime_error("Linha nula detectada — sistema degenerado.");
+    }
+    double rel_eps = std::numeric_limits<double>::epsilon();
+    double pivot_threshold = rel_eps * row_max * 10.0;
+
+    if (std::abs(pivot) < pivot_threshold) {
       bool swapped = false;
-      for (int k = i + 1; k < n; k++) {
-        if (std::abs(augmented.getValue(k, i)) > 1e-9) {
+      for (int k = i + 1; k < n; ++k) {
+        if (std::abs(augmented.getValue(k, i)) > pivot_threshold) {
           augmented.trocarLinhas(i, k);
           swapped = true;
           break;
         }
       }
       if (!swapped) {
-        throw std::runtime_error("O sistema não possui solução única.");
+        throw std::runtime_error("O sistema não possui solução única (pivô pequeno ou zero).");
       }
       pivot = augmented.getValue(i, i);
     }
 
-    for (int j = 0; j < n + m; j++) {
+    for (int j = 0; j < n + m; ++j) {
       augmented.setValue(i, j, augmented.getValue(i, j) / pivot);
     }
 
     // Eliminação
-    for (int k = 0; k < n; k++) {
+    for (int k = 0; k < n; ++k) {
       if (k == i)
         continue;
 
       double factor = augmented.getValue(k, i);
-      for (int j = 0; j < n + m; j++) {
+      for (int j = 0; j < n + m; ++j) {
         augmented.setValue(
             k, j, augmented.getValue(k, j) - factor * augmented.getValue(i, j));
       }
@@ -65,8 +75,8 @@ Matriz gauss_jordan(const Matriz &A, const Matriz &b) {
   }
 
   Matriz x(n, m);
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
       x.setValue(i, j, augmented.getValue(i, j + n));
     }
   }

@@ -8,7 +8,7 @@ Sistema em C++ para resolução de sistemas lineares usando métodos numéricos 
 - **Métodos Numéricos**: Gradiente Conjugado, Cholesky, LU, Gauss-Jordan
 - **Testes Unitários**: Suite completa com Google Test (32 testes)
 - **Build Moderno**: CMake com suporte automático para Google Test
-- **Bibliotecas Externas**: FLAME/BLAS/LAPACK para operações otimizadas
+- **Bibliotecas Externas**: BLAS/LAPACK para operações otimizadas
 
 ## 🛠️ Pré-requisitos
 
@@ -16,7 +16,6 @@ Sistema em C++ para resolução de sistemas lineares usando métodos numéricos 
 - CMake 3.14+
 - Make ou Ninja
 - OpenBLAS/LAPACK
-- FLAME (BLAS library)
 
 ## 📦 Instalação de Dependências
 
@@ -27,12 +26,6 @@ sudo apt-get install -y build-essential cmake git
 
 # BLAS/LAPACK
 sudo apt-get install -y libopenblas-dev liblapack-dev
-
-# FLAME (pode precisar compilar do source)
-git clone https://github.com/flame/libflame.git
-cd libflame
-./configure --prefix=/usr/local
-make && sudo make install
 ```
 
 ### macOS
@@ -203,13 +196,6 @@ O CMakeLists.txt automaticamente:
 
 ## 🐛 Troubleshooting
 
-### Erro de compilação com FLAME
-Se tiver problemas com macros de FLAME:
-```bash
-# A função Matriz::identity foi movida para um arquivo separado
-# para evitar conflitos com macros (#undef min/max)
-```
-
 ### Google Test não encontrado
 ```bash
 # O CMake faz download automático, mas se falhar:
@@ -235,7 +221,6 @@ sudo apt-get install libopenblas-dev
 ## 🎓 Referências
 
 - **Google Test**: https://github.com/google/googletest
-- **FLAME**: https://github.com/flame/libflame
 - **OpenBLAS**: https://github.com/xianyi/OpenBLAS
 - **Métodos Numéricos**: Algorithm Development and Data Transformation (LAPACK/BLAS)
 

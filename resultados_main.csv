@@ -1,0 +1,6 @@
+metodo,solucao_esperada,iteracoes_esperadas,residual_esperado,pre_requisitos,observacoes
+LU,"[-0.368421, 0.789474, 1.68421]",direct,"1e-15..1e-12","A não singular","Solução direta via fatoração LU; pivoteamento parcial usado"
+Cholesky,"[-0.368421, 0.789474, 1.68421]",direct,"1e-15..1e-12","A SPD","Só para matrizes simétricas definidas positivas; lança erro se não-SPD"
+Conjugate Gradient,"[-0.368421, 0.789474, 1.68421]","<= n (ex.: 3)","~1e-16","A SPD","Iterativo; convergência em <= n iterações em aritmética exata; retorna info.iterations/info.final_residual_norm"
+Gauss-Seidel,"[-0.368421, 0.789474, 1.68421]","depende (ex.: 13)","~1e-8 (tol=1e-8)","Diagonal dominante ou estrutura convergente","Iterativo (SOR com omega); convergência mais lenta que CG para este exemplo"
+Gauss-Jordan,"[-0.368421, 0.789474, 1.68421]",direct,"1e-15..1e-12","A não singular","Eliminação completa; lança erro se matriz singular ou quase singular"

@@ -69,45 +69,36 @@ static Matriz read_matrix_from_file(const string &path) {
 }
 
 static void run_octave_solve(const string &matfile, const string &vecfile, const string &outfile, const string &method = "backslash") {
-    // Create a small helper script to avoid quoting issues
-    const string script = "run_octave_tmp.m";
-    ofstream s(script);
-    s << "A = dlmread('" << matfile << "');\n";
-    s << "b = dlmread('" << vecfile << "');\n";
+    // Build an inline Octave command string and invoke with --eval to avoid temporary files
+    std::ostringstream eval;
+    eval << "A = dlmread('" << matfile << "');";
+    eval << "b = dlmread('" << vecfile << "');";
 
     if (method == "chol") {
-        s << "R = chol(A);\n";
-        s << "y = R' \\ b;\n";
-        s << "x = R \\ y;\n";
+        eval << "R = chol(A);";
+        eval << "y = R' \\ b;";
+        eval << "x = R \\ y;";
     } else if (method == "lu") {
-        s << "[L,U,P] = lu(A);\n";
-        s << "x = U \\ (L \\ (P*b));\n";
+        eval << "[L,U,P] = lu(A);";
+        eval << "x = U \\ (L \\ (P*b));";
     } else if (method == "gaussseidel") {
-        s << "function x = gs(A,b,tol,maxIter)\n";
-        s << "n = length(b); x = zeros(n,1);\n";
-        s << "for iter=1:maxIter\n";
-        s << "  x_old = x;\n";
-        s << "  for i=1:n\n";
-        s << "    s = A(i,1:i-1)*x(1:i-1) + A(i,i+1:n)*x_old(i+1:n);\n";
-        s << "    x(i) = (b(i) - s)/A(i,i);\n";
-        s << "  end\n";
-        s << "  if norm(x - x_old, Inf) < tol, break; end\n";
-        s << "end\n";
-        s << "endfunction\n";
-        s << "x = gs(A,b,1e-8,10000);\n";
+        // Inline Gauss-Seidel iteration
+        eval << "n = length(b); x = zeros(n,1); tol = 1e-8; maxIter=10000;";
+        eval << "for iter=1:maxIter; x_old = x;";
+        eval << " for i=1:n; s = 0; if i>1, s = s + A(i,1:i-1)*x(1:i-1); end;";
+        eval << " if i<n, s = s + A(i,i+1:n)*x_old(i+1:n); end;";
+        eval << " x(i) = (b(i) - s)/A(i,i); end;";
+        eval << " if norm(x - x_old, Inf) < tol, break; end; end;";
     } else if (method == "gaussjordan") {
-        s << "M = [A b];\n";
-        s << "R = rref(M);\n";
-        s << "x = R(:, end);\n";
+        eval << "M = [A b]; R = rref(M); x = R(:, end);";
     } else {
-        s << "x = A \\ b;\n";
+        eval << "x = A \\ b;";
     }
 
-    s << "dlmwrite('" << outfile << "', x, 'delimiter', ' ');\n";
-    s << "exit;\n";
-    s.close();
+    eval << "dlmwrite('" << outfile << "', x, 'delimiter', ' ');";
 
-    string cmd = "octave --quiet " + script + " > /dev/null 2>&1";
+    // Wrap eval string in double quotes for shell, filenames use single quotes inside
+    std::string cmd = "octave --quiet --eval \"" + eval.str() + "\" > /dev/null 2>&1";
     int rc = system(cmd.c_str());
     (void)rc;
 }

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <typeinfo>
+#include <limits>
 
 namespace cholesky{
 
@@ -14,26 +15,39 @@ namespace cholesky{
     const int n = A.getRows();
     Matriz L(n, n); 
 
-    for (int i = 0; i < n; i++) { 
-        for (int j = 0; j <= i; j++) {
-            double sum = 0;
+	// Compute a relative threshold based on A magnitude to avoid strict absolute checks
+	double global_max = 0.0;
+	for (int ii = 0; ii < n; ++ii)
+	  for (int jj = 0; jj < n; ++jj)
+		global_max = std::max(global_max, std::abs(A.getValue(ii, jj)));
+	double rel_eps = std::numeric_limits<double>::epsilon();
+	double tol = rel_eps * (global_max == 0.0 ? 1.0 : global_max) * 10.0;
 
-            if (i == j) {
-                for (int k = 0; k < j; k++) {
-                    double val = L.getValue(j, k);
-                    sum += val * val;
-                }
-                double res = A.getValue(j, j) - sum;
-                if (res < 0) throw std::runtime_error("Matriz não é definida positiva.");
-                L.setValue(j, j, std::sqrt(res));
-            } else {
-                for (int k = 0; k < j; k++) {
-                    sum += L.getValue(i, k) * L.getValue(j, k);
-                }
-                L.setValue(i, j, (A.getValue(i, j) - sum) / L.getValue(j, j));
-            }
-        }
-    }
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j <= i; ++j) {
+			double sum = 0.0;
+
+			if (i == j) {
+				for (int k = 0; k < j; ++k) {
+					double val = L.getValue(j, k);
+					sum += val * val;
+				}
+				double res = A.getValue(j, j) - sum;
+				if (res < -tol) throw std::runtime_error("Matriz não é definida positiva.");
+				if (res < tol) res = 0.0; // treat very small negatives/zeros as zero
+				double diag = std::sqrt(res);
+				if (!(diag > tol)) throw std::runtime_error("Cholesky falhou: diagonal não positiva/ muito pequena.");
+				L.setValue(j, j, diag);
+			} else {
+				for (int k = 0; k < j; ++k) {
+					sum += L.getValue(i, k) * L.getValue(j, k);
+				}
+				double denom = L.getValue(j, j);
+				if (std::abs(denom) < tol) throw std::runtime_error("Cholesky falhou: denominador (L[j][j]) muito pequeno.");
+				L.setValue(i, j, (A.getValue(i, j) - sum) / denom);
+			}
+		}
+	}
     	return L;
 	}
 
@@ -42,9 +56,9 @@ namespace cholesky{
 
 		Vector y(n);
 
-		for(int i=0; i <n; i++){
-			double sum =0;
-			for(int j=0; j<i; j++){
+		for (int i = 0; i < n; ++i) {
+			double sum = 0;
+			for (int j = 0; j < i; ++j) {
 				sum+=L.getValue(i,j) * y.getValue(j);
 			}
 			y.setValue(i, (b.getValue(i) - sum)/ L.getValue(i,i));
@@ -56,9 +70,9 @@ namespace cholesky{
 		int n = Lt.getRows();
 		Vector x(n);
 
-		for(int i = n-1; i>= 0; i--){
-			double sum= 0;
-			for(int j = i+1; j< n; j++){
+		for (int i = n - 1; i >= 0; --i) {
+			double sum = 0;
+			for (int j = i + 1; j < n; ++j) {
 				sum += Lt.getValue(i,j) * x.getValue(j);
 			}
 			x.setValue(i,(y.getValue(i) - sum)/Lt.getValue(i,i));

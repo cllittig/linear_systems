@@ -14,31 +14,25 @@
 
 #include <cblas.h>
 
-#define FLA_ENABLE_EXTERNAL_LAPACK_INTERFACES
-extern "C" {
-// #include <FLAME.h>
-}
-
-// O MURO DE SEGURANÇA: Remove as macros da FLAME imediatamente
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-
-// A PARTIR DAQUI, o código C++ volta ao normal.
-
 // Construtor padrão
 Matriz::Matriz() : rows(0), columns(0) {}
 
 Matriz::Matriz(std::tuple<int, int> size, std::vector<double> data)
     : data(data) {
   std::tie(rows, columns) = size;
-  if (data.size() % rows != 0) {
-    throw "WIP1";
-  } else if (data.size() % columns != 0) {
-    throw "WIP2";
+  
+  if (rows <= 0 || columns <= 0) {
+    throw std::invalid_argument(
+        "Matrix dimensions must be positive (rows > 0 and columns > 0)");
+  }
+  
+  if (data.size() != static_cast<size_t>(rows * columns)) {
+    std::string error_msg = "Data size (" + std::to_string(data.size()) + 
+                           ") does not match matrix dimensions (" + 
+                           std::to_string(rows) + "x" + 
+                           std::to_string(columns) + " = " + 
+                           std::to_string(rows * columns) + ")";
+    throw std::invalid_argument(error_msg);
   }
 }
 
@@ -84,13 +78,13 @@ void Matriz::setValue(int row, int column, double value) {
 // Soma
 Matriz Matriz::operator+(const Matriz &other) const {
   if (rows != other.getRows() || columns != other.getColumns()) {
-    throw std::invalid_argument("Number of columns and Rows must be different");
+    throw std::invalid_argument("Matrices must have the same dimensions for addition");
   }
 
   Matriz responseMatriz(rows, columns);
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       responseMatriz.setValue(i, j, getValue(i, j) + other.getValue(i, j));
     }
   }
@@ -101,13 +95,13 @@ Matriz Matriz::operator+(const Matriz &other) const {
 // Subtração
 Matriz Matriz::operator-(const Matriz &other) const {
   if (rows != other.getRows() || columns != other.getColumns()) {
-    throw std::invalid_argument("Number of columns and Rows must be different");
+    throw std::invalid_argument("Matrices must have the same dimensions for subtraction");
   }
 
   Matriz responseMatriz(rows, columns);
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       responseMatriz.setValue(i, j, getValue(i, j) - other.getValue(i, j));
     }
   }
@@ -119,8 +113,8 @@ Matriz Matriz::operator-(const Matriz &other) const {
 Matriz Matriz::operator*(double realNumber) const {
   Matriz responseMatriz(rows, columns);
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       responseMatriz.setValue(i, j, getValue(i, j) * realNumber);
     }
   }
@@ -137,10 +131,10 @@ Matriz Matriz::operator*(const Matriz &other) const {
   }
   Matriz responseMatriz(rows, other.getColumns());
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < other.getColumns(); j++) {
-      double tempSum = 0;
-      for (int k = 0; k < columns; k++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < other.getColumns(); ++j) {
+      double tempSum = 0.0;
+      for (int k = 0; k < columns; ++k) {
         tempSum += getValue(i, k) * other.getValue(k, j);
       }
       responseMatriz.setValue(i, j, tempSum);
@@ -162,8 +156,8 @@ bool Matriz::isSquare() const {
 Matriz Matriz::transpose() const {
   Matriz responseMatriz(columns, rows);
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       responseMatriz.setValue(j, i, getValue(i, j));
     }
   }
@@ -175,8 +169,8 @@ Matriz Matriz::transpose() const {
 bool Matriz::isSimetric() const {
   if (rows != columns)
     return false;
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       if (std::abs(getValue(i, j) - getValue(j, i)) > 1e-9)
         return false;
     }
@@ -209,8 +203,8 @@ Matriz Matriz::identity() const {
 
   Matriz responseMatriz(rows, columns);
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < columns; j++) {
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < columns; ++j) {
       if (i == j)
         responseMatriz.setValue(i, j, 1);
       else
@@ -229,21 +223,21 @@ Matriz Matriz::inverse() const {
   int n = rows;
   Matriz augmented(n, 2 * n);
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       augmented.setValue(i, j, getValue(i, j));
     }
-    for (int j = n; j < 2 * n; j++) {
+    for (int j = n; j < 2 * n; ++j) {
       augmented.setValue(i, j, (i == j - n) ? 1.0 : 0.0);
     }
   }
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; ++i) {
     double pivot = augmented.getValue(i, i);
 
     if (std::abs(pivot) < 1e-9) {
       bool swapped = false;
-      for (int k = i + 1; k < n; k++) {
+      for (int k = i + 1; k < n; ++k) {
         if (std::abs(augmented.getValue(k, i)) > 1e-9) {
           augmented.trocarLinhas(i, k);
           swapped = true;
@@ -256,16 +250,16 @@ Matriz Matriz::inverse() const {
       pivot = augmented.getValue(i, i);
     }
 
-    for (int j = 0; j < 2 * n; j++) {
+    for (int j = 0; j < 2 * n; ++j) {
       augmented.setValue(i, j, augmented.getValue(i, j) / pivot);
     }
 
-    for (int k = 0; k < n; k++) {
+    for (int k = 0; k < n; ++k) {
       if (k == i)
         continue;
 
       double factor = augmented.getValue(k, i);
-      for (int j = 0; j < 2 * n; j++) {
+      for (int j = 0; j < 2 * n; ++j) {
         augmented.setValue(
             k, j, augmented.getValue(k, j) - factor * augmented.getValue(i, j));
       }
@@ -273,8 +267,8 @@ Matriz Matriz::inverse() const {
   }
 
   Matriz inverse(n, n);
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       inverse.setValue(i, j, augmented.getValue(i, j + n));
     }
   }
@@ -291,9 +285,9 @@ void Matriz::print() const {
   const int largura = 9;
   char buffer[64];
 
-  for (int i = 0; i < rows; i++) {
+  for (int i = 0; i < rows; ++i) {
     printf("| ");
-    for (int j = 0; j < columns; j++) {
+    for (int j = 0; j < columns; ++j) {
       double valor = getValue(i, j);
       snprintf(buffer, sizeof(buffer), "%.6f", valor);
       char *fim = buffer + strlen(buffer) - 1;
@@ -310,35 +304,17 @@ void Matriz::print() const {
 }
 
 void Matriz::trocarLinhas(int linha1, int linha2) {
-  for (int i = 0; i < columns; i++) {
+  for (int i = 0; i < columns; ++i) {
     double temp = getValue(linha1, i);
     setValue(linha1, i, getValue(linha2, i));
     setValue(linha2, i, temp);
   }
 }
 
-// bool Matriz::testarConexaoFlame() const {
-//
-//   FLA_Init();
-//
-//   printf(">>> SUCESS: CONEXAO LIBFLAME\n");
-//
-//   printf(">>> INITIALIZING: VERIFICACAO DE OBJETOOS FLAME\n");
-//
-//   FLA_Obj teste;
-//   FLA_Obj_create(FLA_DOUBLE, 1, 1, 0, 0, &teste);
-//
-//   printf("SUCESS: OBJETOS OPERANDO NORMALMENTE");
-//
-//   FLA_Obj_free(&teste);
-//   FLA_Finalize();
-//   return true;
-// }
-
 Matriz Matriz::clonar() const {
     Matriz copia(this->rows, this->columns);
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < columns; j++) {
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < columns; ++j) {
             copia.setValue(i, j, this->getValue(i, j));
         }
     }

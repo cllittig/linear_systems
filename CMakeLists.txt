@@ -25,7 +25,7 @@ add_executable(programa_tcc
     ${SOURCES_UTILS}
     src/algebra_linear/matriz_identity.cpp
 )
-target_link_libraries(programa_tcc PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread flame openblas)
+target_link_libraries(programa_tcc PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread)
 
 # Google Test configuration
 option(BUILD_TESTS "Build tests" ON)
@@ -65,7 +65,7 @@ if(BUILD_TESTS)
         gtest 
         ${BLAS_LIBRARIES} 
         ${LAPACK_LIBRARIES} 
-        m pthread flame openblas
+        m pthread
     )
 
     add_test(NAME LinearSystemsTests COMMAND programa_testes)
@@ -78,7 +78,7 @@ add_executable(bench_compare
     ${SOURCES_UTILS}
 )
 
-target_link_libraries(bench_compare PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread flame openblas)
+target_link_libraries(bench_compare PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread)
 
 add_executable(bench_fair
     src/bench/bench_fair_comparison.cpp
@@ -87,4 +87,4 @@ add_executable(bench_fair
     ${SOURCES_UTILS}
 )
 
-target_link_libraries(bench_fair PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread flame openblas)
+target_link_libraries(bench_fair PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} m pthread)

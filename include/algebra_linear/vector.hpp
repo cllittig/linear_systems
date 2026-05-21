@@ -31,7 +31,7 @@ public:
     //operações com vetores
     bool equality(const Vector& other) const;
     Vector operator+(const Vector& other) const;
-    Vector operator*(const int escale) const;
+    Vector operator*(double scale) const;
     Vector operator*(const Vector& other) const;
     Vector operator-(const Vector& other) const;
     Vector axpy(const Vector& y, double alpha) const;
