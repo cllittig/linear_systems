@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cstdio>
-#include <linear_systems/algebra_linear/matriz.hpp>
+#include "algebra_linear/matriz.hpp"
 
 class Vector{
 

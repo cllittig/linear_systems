@@ -1,8 +1,8 @@
 #ifndef GAUSSJORDAN_HPP
 #define GAUSSJORDAN_HPP
 
-#include <linear_systems/algebra_linear/matriz.hpp>
-#include <linear_systems/algebra_linear/vector.hpp>
+#include "algebra_linear/matriz.hpp"
+#include "algebra_linear/vector.hpp"
 
 
 namespace gaussjordan{

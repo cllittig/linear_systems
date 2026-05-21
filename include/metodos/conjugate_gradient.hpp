@@ -1,9 +1,9 @@
 #ifndef CONJUGATE_GRADIENT_HPP
 #define CONJUGATE_GRADIENT_HPP
 
-#include <linear_systems/algebra_linear/matriz.hpp>
-#include <linear_systems/algebra_linear/vector.hpp>
-#include <linear_systems/metodos/solver_utils.hpp>
+#include "algebra_linear/matriz.hpp"
+#include "algebra_linear/vector.hpp"
+#include "metodos/solver_utils.hpp"
 
 namespace conjugate_gradient {
 
