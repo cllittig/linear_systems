@@ -1,218 +1,153 @@
-#include <gtest/gtest.h>
+#include "utils/test.hpp"
 #include "algebra_linear/vector.hpp"
 #include "algebra_linear/matriz.hpp"
 #include <cmath>
 
-class VectorAdvancedTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        v1 = Vector(4);
-        v1.setValue(0, 1.0);
-        v1.setValue(1, 2.0);
-        v1.setValue(2, 3.0);
-        v1.setValue(3, 4.0);
+static Vector make_v1() {
+    Vector v(4);
+    v.setValue(0, 1.0); v.setValue(1, 2.0); v.setValue(2, 3.0); v.setValue(3, 4.0);
+    return v;
+}
 
-        v2 = Vector(4);
-        v2.setValue(0, 2.0);
-        v2.setValue(1, 0.0);
-        v2.setValue(2, -1.0);
-        v2.setValue(3, 2.0);
-    }
+static Vector make_v2() {
+    Vector v(4);
+    v.setValue(0, 2.0); v.setValue(1, 0.0); v.setValue(2, -1.0); v.setValue(3, 2.0);
+    return v;
+}
 
-    Vector v1, v2;
-};
-
-TEST_F(VectorAdvancedTest, OrthogonalVectors) {
-    Vector a(3);
+static void test_orthogonal_vectors() {
+    Vector a(3), b(3);
     a.setValue(0, 1.0);
-    a.setValue(1, 0.0);
-    a.setValue(2, 0.0);
-
-    Vector b(3);
-    b.setValue(0, 0.0);
     b.setValue(1, 1.0);
-    b.setValue(2, 0.0);
-
-    EXPECT_EQ(a.linear_product(b), 0.0);
+    ASSERT_NEAR(a.linear_product(b), 0.0, 0.0);
 }
 
-TEST_F(VectorAdvancedTest, UnitVector) {
+static void test_unit_vector() {
+    double s = 1.0 / std::sqrt(3.0);
     Vector u(3);
-    u.setValue(0, 1.0 / std::sqrt(3));
-    u.setValue(1, 1.0 / std::sqrt(3));
-    u.setValue(2, 1.0 / std::sqrt(3));
-
-    EXPECT_NEAR(u.euclidian_length(), 1.0, 1e-6);
+    u.setValue(0, s); u.setValue(1, s); u.setValue(2, s);
+    ASSERT_NEAR(u.euclidian_length(), 1.0, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, CauchySchwarzInequality) {
-    // |<u, v>| <= ||u|| * ||v||
-    double dotProduct = std::abs(v1.linear_product(v2));
-    double norm1 = v1.euclidian_length();
-    double norm2 = v2.euclidian_length();
-
-    EXPECT_LE(dotProduct, norm1 * norm2 + 1e-6);
+static void test_cauchy_schwarz() {
+    // |<u,v>| <= ||u|| * ||v||
+    Vector v1 = make_v1(), v2 = make_v2();
+    double dot = std::fabs(v1.linear_product(v2));
+    ASSERT_LE(dot, v1.euclidian_length() * v2.euclidian_length() + 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, TriangleInequality) {
+static void test_triangle_inequality() {
     // ||u + v|| <= ||u|| + ||v||
-    Vector sum = v1 + v2;
-    double norm_sum = sum.euclidian_length();
-    double norm1 = v1.euclidian_length();
-    double norm2 = v2.euclidian_length();
-
-    EXPECT_LE(norm_sum, norm1 + norm2 + 1e-6);
+    Vector v1 = make_v1(), v2 = make_v2();
+    ASSERT_LE((v1 + v2).euclidian_length(), v1.euclidian_length() + v2.euclidian_length() + 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, PythagoreanTheorem) {
-    Vector a(2);
-    a.setValue(0, 3.0);
-    a.setValue(1, 0.0);
-
-    Vector b(2);
-    b.setValue(0, 0.0);
-    b.setValue(1, 4.0);
-
-    Vector sum = a + b;
-    double norm_sum = sum.euclidian_length();
-    double norm_a = a.euclidian_length();
-    double norm_b = b.euclidian_length();
-
+static void test_pythagorean_theorem() {
     // 3-4-5 triangle
-    EXPECT_NEAR(norm_sum, 5.0, 1e-6);
-    EXPECT_NEAR(norm_a * norm_a + norm_b * norm_b, norm_sum * norm_sum, 1e-6);
+    Vector a(2), b(2);
+    a.setValue(0, 3.0); b.setValue(1, 4.0);
+    ASSERT_NEAR((a + b).euclidian_length(), 5.0, 1e-6);
+    ASSERT_NEAR(a.euclidian_length() * a.euclidian_length() +
+                b.euclidian_length() * b.euclidian_length(),
+                25.0, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, VectorProjection) {
-    // Project v1 onto v2
-    double numerator = v1.linear_product(v2);
-    double denominator = v2.linear_product(v2);
-    double scalar = numerator / denominator;
-    Vector projection = v2 * (int)scalar;
-
-    // The projection should have length close to numerator/norm(v2)
-    double expected_length = std::abs(numerator) / v2.euclidian_length();
-    EXPECT_NEAR(projection.euclidian_length(), expected_length, 1e-6);
+static void test_vector_projection() {
+    // proj_v2(v1) = (v1·v2 / v2·v2) * v2
+    Vector v1 = make_v1(), v2 = make_v2();
+    double scalar = v1.linear_product(v2) / v2.linear_product(v2);
+    Vector proj = v2 * scalar;
+    double expected_length = std::fabs(v1.linear_product(v2)) / v2.euclidian_length();
+    ASSERT_NEAR(proj.euclidian_length(), expected_length, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, AdditionAssociative) {
+static void test_addition_associative() {
     Vector v3(4);
-    v3.setValue(0, 1.0);
-    v3.setValue(1, 1.0);
-    v3.setValue(2, 1.0);
-    v3.setValue(3, 1.0);
-
-    Vector result1 = (v1 + v2) + v3;
-    Vector result2 = v1 + (v2 + v3);
-
-    for (int i = 0; i < 4; i++) {
-        EXPECT_NEAR(result1.getValue(i), result2.getValue(i), 1e-6);
-    }
+    for (int i = 0; i < 4; i++) v3.setValue(i, 1.0);
+    Vector v1 = make_v1(), v2 = make_v2();
+    Vector r1 = (v1 + v2) + v3;
+    Vector r2 = v1 + (v2 + v3);
+    ASSERT_VEC_NEAR(r1, r2, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, ScalarDistributive) {
-    // k * (u + v) = k*u + k*v
-    Vector sum = v1 + v2;
-    Vector scaled_sum = sum * 3;
-    
-    Vector scaled1 = v1 * 3;
-    Vector scaled2 = v2 * 3;
-    Vector result = scaled1 + scaled2;
-
-    for (int i = 0; i < 4; i++) {
-        EXPECT_NEAR(scaled_sum.getValue(i), result.getValue(i), 1e-6);
-    }
+static void test_scalar_distributive() {
+    // k*(u+v) = k*u + k*v
+    Vector v1 = make_v1(), v2 = make_v2();
+    ASSERT_VEC_NEAR((v1 + v2) * 3.0, v1 * 3.0 + v2 * 3.0, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, MatrixVectorMultiplication) {
+static void test_matrix_vector_multiplication() {
+    // [1,2,3; 4,5,6; 7,8,9] * [1,0,1]^T = [4, 10, 16]
     Matriz m(3, 3);
-    m.setValue(0, 0, 1.0);
-    m.setValue(0, 1, 2.0);
-    m.setValue(0, 2, 3.0);
-    m.setValue(1, 0, 4.0);
-    m.setValue(1, 1, 5.0);
-    m.setValue(1, 2, 6.0);
-    m.setValue(2, 0, 7.0);
-    m.setValue(2, 1, 8.0);
-    m.setValue(2, 2, 9.0);
-
+    m.setValue(0,0,1); m.setValue(0,1,2); m.setValue(0,2,3);
+    m.setValue(1,0,4); m.setValue(1,1,5); m.setValue(1,2,6);
+    m.setValue(2,0,7); m.setValue(2,1,8); m.setValue(2,2,9);
     Vector v(3);
-    v.setValue(0, 1.0);
-    v.setValue(1, 0.0);
-    v.setValue(2, 1.0);
-
+    v.setValue(0, 1.0); v.setValue(2, 1.0);
     Vector result = multiplicar(m, v);
-    // [1,2,3; 4,5,6; 7,8,9] * [1,0,1]^T = [4, 10, 16]^T
-    EXPECT_EQ(result.getValue(0), 4.0);
-    EXPECT_EQ(result.getValue(1), 10.0);
-    EXPECT_EQ(result.getValue(2), 16.0);
+    ASSERT_NEAR(result.getValue(0),  4.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 10.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 16.0, 0.0);
 }
 
-TEST_F(VectorAdvancedTest, ZeroVectorAdditiveIdentity) {
+static void test_zero_additive_identity() {
+    Vector v1 = make_v1();
     Vector zero(4);
-    for (int i = 0; i < 4; i++) {
-        zero.setValue(i, 0.0);
-    }
-
-    Vector result = v1 + zero;
-    for (int i = 0; i < 4; i++) {
-        EXPECT_EQ(result.getValue(i), v1.getValue(i));
-    }
+    ASSERT_VEC_NEAR(v1 + zero, v1, 0.0);
 }
 
-TEST_F(VectorAdvancedTest, NegativeVector) {
-    Vector neg = v1 * -1;
-    Vector result = v1 + neg;
-
-    for (int i = 0; i < 4; i++) {
-        EXPECT_NEAR(result.getValue(i), 0.0, 1e-6);
-    }
+static void test_negative_vector() {
+    Vector v1 = make_v1();
+    Vector neg = v1 * -1.0;
+    Vector zero(4);
+    ASSERT_VEC_NEAR(v1 + neg, zero, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, NormalizeVector) {
-    double norm = v1.euclidian_length();
-    Vector normalized = v1 * (int)(1 / norm);
-
-    // After scaling by 1/norm, the length should be close to 1
-    // This is approximate since we're using int casting
-    EXPECT_GT(normalized.euclidian_length(), 0.0);
+static void test_normalize_vector() {
+    Vector v1 = make_v1();
+    Vector normalized = v1 * (1.0 / v1.euclidian_length());
+    ASSERT_NEAR(normalized.euclidian_length(), 1.0, 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, VectorNormProperties) {
-    // ||alpha * v|| = |alpha| * ||v||
-    double norm_v = v1.euclidian_length();
-    Vector scaled = v1 * 5;
-    double norm_scaled = scaled.euclidian_length();
-
-    EXPECT_NEAR(norm_scaled, 5 * norm_v, 1e-6);
+static void test_norm_scaling() {
+    // ||alpha*v|| = |alpha| * ||v||
+    Vector v1 = make_v1();
+    ASSERT_NEAR((v1 * 5.0).euclidian_length(), 5.0 * v1.euclidian_length(), 1e-6);
 }
 
-TEST_F(VectorAdvancedTest, LinearCombination) {
-    // Test if we can represent a vector as linear combination
-    Vector u(3);
-    u.setValue(0, 1.0);
-    u.setValue(1, 0.0);
-    u.setValue(2, 0.0);
-
-    Vector v(3);
-    v.setValue(0, 0.0);
-    v.setValue(1, 1.0);
-    v.setValue(2, 0.0);
-
-    // 3u + 4v should be [3, 4, 0]
-    Vector result = u * 3 + v * 4;
-    EXPECT_EQ(result.getValue(0), 3.0);
-    EXPECT_EQ(result.getValue(1), 4.0);
-    EXPECT_EQ(result.getValue(2), 0.0);
+static void test_linear_combination() {
+    // 3*e1 + 4*e2 = [3, 4, 0]
+    Vector u(3), v(3);
+    u.setValue(0, 1.0); v.setValue(1, 1.0);
+    Vector result = u * 3.0 + v * 4.0;
+    ASSERT_NEAR(result.getValue(0), 3.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 4.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 0.0, 0.0);
 }
 
-TEST_F(VectorAdvancedTest, LargeVectorNorm) {
+static void test_large_vector_norm() {
+    // sqrt(10000 * 0.01^2) = 1
     Vector large(10000);
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 10000; i++)
         large.setValue(i, 0.01);
-    }
+    ASSERT_NEAR(large.euclidian_length(), 1.0, 1e-6);
+}
 
-    double norm = large.euclidian_length();
-    // sqrt(10000 * 0.01^2) = sqrt(10000 * 0.0001) = sqrt(1) = 1
-    EXPECT_NEAR(norm, 1.0, 1e-6);
+int main() {
+    RUN_TEST(test_orthogonal_vectors);
+    RUN_TEST(test_unit_vector);
+    RUN_TEST(test_cauchy_schwarz);
+    RUN_TEST(test_triangle_inequality);
+    RUN_TEST(test_pythagorean_theorem);
+    RUN_TEST(test_vector_projection);
+    RUN_TEST(test_addition_associative);
+    RUN_TEST(test_scalar_distributive);
+    RUN_TEST(test_matrix_vector_multiplication);
+    RUN_TEST(test_zero_additive_identity);
+    RUN_TEST(test_negative_vector);
+    RUN_TEST(test_normalize_vector);
+    RUN_TEST(test_norm_scaling);
+    RUN_TEST(test_linear_combination);
+    RUN_TEST(test_large_vector_norm);
+    TEST_SUMMARY();
 }

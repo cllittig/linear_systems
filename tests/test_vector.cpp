@@ -1,175 +1,178 @@
-#include <gtest/gtest.h>
+#include "utils/test.hpp"
 #include "algebra_linear/vector.hpp"
-#include <cmath>
+#include <stdexcept>
 
-class VectorTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        v1 = Vector(3);
-        v1.setValue(0, 1.0);
-        v1.setValue(1, 2.0);
-        v1.setValue(2, 3.0);
+static Vector make_v1() {
+    Vector v(3);
+    v.setValue(0, 1.0); v.setValue(1, 2.0); v.setValue(2, 3.0);
+    return v;
+}
 
-        v2 = Vector(3);
-        v2.setValue(0, 4.0);
-        v2.setValue(1, 5.0);
-        v2.setValue(2, 6.0);
-    }
+static Vector make_v2() {
+    Vector v(3);
+    v.setValue(0, 4.0); v.setValue(1, 5.0); v.setValue(2, 6.0);
+    return v;
+}
 
-    Vector v1, v2;
-};
-
-TEST_F(VectorTest, ConstructorDefault) {
+static void test_constructor_default() {
     Vector v;
-    EXPECT_EQ(v.getLength(), 0);
+    ASSERT_EQ(v.getLength(), 0);
 }
 
-TEST_F(VectorTest, ConstructorWithDimension) {
+static void test_constructor_dimension() {
     Vector v(5);
-    EXPECT_EQ(v.getLength(), 5);
+    ASSERT_EQ(v.getLength(), 5);
 }
 
-TEST_F(VectorTest, GetSetValue) {
+static void test_get_set_value() {
     Vector v(3);
     v.setValue(1, 10.5);
-    EXPECT_EQ(v.getValue(1), 10.5);
+    ASSERT_NEAR(v.getValue(1), 10.5, 0.0);
 }
 
-TEST_F(VectorTest, GetValueOutOfRange) {
+static void test_get_value_out_of_range() {
     Vector v(3);
-    EXPECT_THROW(v.getValue(5), std::out_of_range);
+    ASSERT_THROW(v.getValue(5), std::out_of_range);
 }
 
-TEST_F(VectorTest, SetValueOutOfRange) {
+static void test_set_value_out_of_range() {
     Vector v(3);
-    EXPECT_THROW(v.setValue(10, 5.0), std::out_of_range);
+    ASSERT_THROW(v.setValue(10, 5.0), std::out_of_range);
 }
 
-TEST_F(VectorTest, CopyConstructor) {
+static void test_copy_constructor() {
+    Vector v1 = make_v1();
     Vector copy = v1;
-    EXPECT_EQ(copy.getLength(), v1.getLength());
-    for (int i = 0; i < v1.getLength(); i++) {
-        EXPECT_EQ(copy.getValue(i), v1.getValue(i));
-    }
+    ASSERT_EQ(copy.getLength(), v1.getLength());
+    ASSERT_VEC_NEAR(copy, v1, 0.0);
 }
 
-TEST_F(VectorTest, VectorAddition) {
-    Vector result = v1 + v2;
-    EXPECT_EQ(result.getLength(), 3);
-    EXPECT_EQ(result.getValue(0), 5.0);
-    EXPECT_EQ(result.getValue(1), 7.0);
-    EXPECT_EQ(result.getValue(2), 9.0);
+static void test_addition() {
+    // [1,2,3] + [4,5,6] = [5,7,9]
+    Vector result = make_v1() + make_v2();
+    ASSERT_EQ(result.getLength(), 3);
+    ASSERT_NEAR(result.getValue(0), 5.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 7.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 9.0, 0.0);
 }
 
-TEST_F(VectorTest, VectorSubtraction) {
-    Vector result = v2 - v1;
-    EXPECT_EQ(result.getLength(), 3);
-    EXPECT_EQ(result.getValue(0), 3.0);
-    EXPECT_EQ(result.getValue(1), 3.0);
-    EXPECT_EQ(result.getValue(2), 3.0);
+static void test_subtraction() {
+    // [4,5,6] - [1,2,3] = [3,3,3]
+    Vector result = make_v2() - make_v1();
+    ASSERT_EQ(result.getLength(), 3);
+    ASSERT_NEAR(result.getValue(0), 3.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 3.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 3.0, 0.0);
 }
 
-TEST_F(VectorTest, ScalarMultiplication) {
-    Vector result = v1 * 2;
-    EXPECT_EQ(result.getLength(), 3);
-    EXPECT_EQ(result.getValue(0), 2.0);
-    EXPECT_EQ(result.getValue(1), 4.0);
-    EXPECT_EQ(result.getValue(2), 6.0);
+static void test_scalar_multiplication() {
+    Vector result = make_v1() * 2.0;
+    ASSERT_NEAR(result.getValue(0), 2.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 4.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 6.0, 0.0);
 }
 
-TEST_F(VectorTest, ScalarMultiplicationByZero) {
-    Vector result = v1 * 0;
-    EXPECT_EQ(result.getValue(0), 0.0);
-    EXPECT_EQ(result.getValue(1), 0.0);
-    EXPECT_EQ(result.getValue(2), 0.0);
+static void test_scalar_multiplication_by_zero() {
+    Vector result = make_v1() * 0.0;
+    ASSERT_NEAR(result.getValue(0), 0.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 0.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 0.0, 0.0);
 }
 
-TEST_F(VectorTest, DotProduct) {
-    double product = v1.linear_product(v2);
-    // 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32
-    EXPECT_EQ(product, 32.0);
+static void test_dot_product() {
+    // 1*4 + 2*5 + 3*6 = 32
+    ASSERT_NEAR(make_v1().linear_product(make_v2()), 32.0, 0.0);
 }
 
-TEST_F(VectorTest, DotProductZeroVectors) {
+static void test_dot_product_zero_vector() {
     Vector zero(3);
-    zero.setValue(0, 0.0);
-    zero.setValue(1, 0.0);
-    zero.setValue(2, 0.0);
-    double product = zero.linear_product(v1);
-    EXPECT_EQ(product, 0.0);
+    ASSERT_NEAR(zero.linear_product(make_v1()), 0.0, 0.0);
 }
 
-TEST_F(VectorTest, EuclidianLength) {
+static void test_euclidian_length() {
+    // ||(3,4,0)|| = 5
     Vector v(3);
-    v.setValue(0, 3.0);
-    v.setValue(1, 4.0);
-    v.setValue(2, 0.0);
-    double norm = v.euclidian_length();
-    EXPECT_NEAR(norm, 5.0, 1e-6);
+    v.setValue(0, 3.0); v.setValue(1, 4.0); v.setValue(2, 0.0);
+    ASSERT_NEAR(v.euclidian_length(), 5.0, 1e-6);
 }
 
-TEST_F(VectorTest, EuclidianLengthStandardBasis) {
+static void test_euclidian_length_unit() {
     Vector e1(3);
     e1.setValue(0, 1.0);
-    e1.setValue(1, 0.0);
-    e1.setValue(2, 0.0);
-    EXPECT_NEAR(e1.euclidian_length(), 1.0, 1e-6);
+    ASSERT_NEAR(e1.euclidian_length(), 1.0, 1e-6);
 }
 
-TEST_F(VectorTest, VectorEquality) {
+static void test_equality() {
+    Vector v1 = make_v1();
     Vector v3 = v1;
-    EXPECT_TRUE(v1.equality(v3));
-    EXPECT_FALSE(v1.equality(v2));
+    ASSERT_TRUE(v1.equality(v3));
+    ASSERT_FALSE(v1.equality(make_v2()));
 }
 
-TEST_F(VectorTest, AdditionIncompatibleDimensions) {
+static void test_addition_incompatible() {
+    Vector v1 = make_v1();
     Vector v3(5);
-    EXPECT_THROW(v1 + v3, std::invalid_argument);
+    ASSERT_THROW(v1 + v3, std::invalid_argument);
 }
 
-TEST_F(VectorTest, SubtractionIncompatibleDimensions) {
-    Vector v3(5);
-    EXPECT_THROW(v1 - v3, std::invalid_argument);
+static void test_axpy() {
+    // axpy(y, alpha) = alpha * this + y: 2*[1,2,3] + [4,5,6] = [6,9,12]
+    Vector result = make_v1().axpy(make_v2(), 2.0);
+    ASSERT_NEAR(result.getValue(0),  6.0, 0.0);
+    ASSERT_NEAR(result.getValue(1),  9.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 12.0, 0.0);
 }
 
-TEST_F(VectorTest, Axpy) {
-    // result = v1 + alpha * v2
-    Vector result = v1.axpy(v2, 2.0);
-    // [1,2,3] + 2*[4,5,6] = [1+8, 2+10, 3+12] = [9, 12, 15]
-    EXPECT_EQ(result.getValue(0), 9.0);
-    EXPECT_EQ(result.getValue(1), 12.0);
-    EXPECT_EQ(result.getValue(2), 15.0);
+static void test_axpy_zero_alpha() {
+    // 0*v1 + v2 = v2
+    Vector result = make_v1().axpy(make_v2(), 0.0);
+    ASSERT_VEC_NEAR(result, make_v2(), 0.0);
 }
 
-TEST_F(VectorTest, AxpyZeroAlpha) {
-    Vector result = v1.axpy(v2, 0.0);
-    EXPECT_EQ(result.getValue(0), v1.getValue(0));
-    EXPECT_EQ(result.getValue(1), v1.getValue(1));
-    EXPECT_EQ(result.getValue(2), v1.getValue(2));
-}
-
-TEST_F(VectorTest, DotProductWithItself) {
-    double product = v1.linear_product(v1);
+static void test_dot_product_with_itself() {
+    Vector v1 = make_v1();
     double norm = v1.euclidian_length();
-    EXPECT_NEAR(product, norm * norm, 1e-6);
+    ASSERT_NEAR(v1.linear_product(v1), norm * norm, 1e-6);
 }
 
-TEST_F(VectorTest, LargeVectorOperations) {
+static void test_large_vector_operations() {
     Vector large(1000);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++)
         large.setValue(i, 0.001 * i);
-    }
-
-    Vector doubled = large * 2;
-    for (int i = 0; i < 1000; i++) {
-        EXPECT_NEAR(doubled.getValue(i), 0.002 * i, 1e-10);
-    }
+    Vector doubled = large * 2.0;
+    for (int i = 0; i < 1000; i++)
+        ASSERT_NEAR(doubled.getValue(i), 0.002 * i, 1e-10);
 }
 
-TEST_F(VectorTest, ComponentWiseProduct) {
-    Vector result = v1 * v2;
-    // [1,2,3] * [4,5,6] = [4, 10, 18]
-    EXPECT_EQ(result.getValue(0), 4.0);
-    EXPECT_EQ(result.getValue(1), 10.0);
-    EXPECT_EQ(result.getValue(2), 18.0);
+static void test_component_wise_product() {
+    // [1,2,3] * [4,5,6] = [4,10,18]
+    Vector result = make_v1() * make_v2();
+    ASSERT_NEAR(result.getValue(0),  4.0, 0.0);
+    ASSERT_NEAR(result.getValue(1), 10.0, 0.0);
+    ASSERT_NEAR(result.getValue(2), 18.0, 0.0);
+}
+
+int main() {
+    RUN_TEST(test_constructor_default);
+    RUN_TEST(test_constructor_dimension);
+    RUN_TEST(test_get_set_value);
+    RUN_TEST(test_get_value_out_of_range);
+    RUN_TEST(test_set_value_out_of_range);
+    RUN_TEST(test_copy_constructor);
+    RUN_TEST(test_addition);
+    RUN_TEST(test_subtraction);
+    RUN_TEST(test_scalar_multiplication);
+    RUN_TEST(test_scalar_multiplication_by_zero);
+    RUN_TEST(test_dot_product);
+    RUN_TEST(test_dot_product_zero_vector);
+    RUN_TEST(test_euclidian_length);
+    RUN_TEST(test_euclidian_length_unit);
+    RUN_TEST(test_equality);
+    RUN_TEST(test_addition_incompatible);
+    RUN_TEST(test_axpy);
+    RUN_TEST(test_axpy_zero_alpha);
+    RUN_TEST(test_dot_product_with_itself);
+    RUN_TEST(test_large_vector_operations);
+    RUN_TEST(test_component_wise_product);
+    TEST_SUMMARY();
 }

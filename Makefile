@@ -28,7 +28,7 @@ clean:
 
 # --- Tests ---
 # Lista todos os .cpp em tests/ e define os binários correspondentes em build/tests/
-TEST_SRCS := $(wildcard tests/*.cpp)
+TEST_SRCS := $(filter-out tests/benchmark.cpp, $(wildcard tests/*.cpp))
 TEST_BINS := $(TEST_SRCS:tests/%.cpp=build/tests/%)
 
 # Compila e executa todos os testes. Retorna erro se algum falhar.
@@ -67,22 +67,18 @@ $(PLOT_PNG): $(BENCHMARK_BIN) plot/plot.py
 	./$(BENCHMARK_BIN) > $(PLOT_CSV)
 	$(PYTHON) plot/plot.py $(PLOT_CSV)
 
-# --- Installation ---
+# --- Instalação ---
 INSTALL_LIB_DIR  := /usr/local/lib
 INSTALL_INC_DIR  := /usr/local/include/linear_systems
 
 install: $(LIB)
-	@echo "Instalando biblioteca..."
 	mkdir -p $(INSTALL_LIB_DIR)
 	mkdir -p $(INSTALL_INC_DIR)
 	cp $(LIB) $(INSTALL_LIB_DIR)/
 	cp -r include/* $(INSTALL_INC_DIR)/
-	@echo "✓ Instalado em $(INSTALL_LIB_DIR) e $(INSTALL_INC_DIR)"
 
 uninstall:
-	@echo "Removendo biblioteca..."
 	rm -f $(INSTALL_LIB_DIR)/$(LIB)
 	rm -rf $(INSTALL_INC_DIR)
-	@echo "✓ Removido"
 
 .PHONY: all clean test benchmark install uninstall
