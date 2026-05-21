@@ -67,4 +67,22 @@ $(PLOT_PNG): $(BENCHMARK_BIN) plot/plot.py
 	./$(BENCHMARK_BIN) > $(PLOT_CSV)
 	$(PYTHON) plot/plot.py $(PLOT_CSV)
 
-.PHONY: all clean test benchmark
+# --- Installation ---
+INSTALL_LIB_DIR  := /usr/local/lib
+INSTALL_INC_DIR  := /usr/local/include/linear_systems
+
+install: $(LIB)
+	@echo "Instalando biblioteca..."
+	mkdir -p $(INSTALL_LIB_DIR)
+	mkdir -p $(INSTALL_INC_DIR)
+	cp $(LIB) $(INSTALL_LIB_DIR)/
+	cp -r include/* $(INSTALL_INC_DIR)/
+	@echo "✓ Instalado em $(INSTALL_LIB_DIR) e $(INSTALL_INC_DIR)"
+
+uninstall:
+	@echo "Removendo biblioteca..."
+	rm -f $(INSTALL_LIB_DIR)/$(LIB)
+	rm -rf $(INSTALL_INC_DIR)
+	@echo "✓ Removido"
+
+.PHONY: all clean test benchmark install uninstall
