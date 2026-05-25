@@ -9,6 +9,11 @@ else
   CFLAGS := -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Iinclude -MMD -MP
 endif
 
+BLAS ?= 1
+ifeq ($(BLAS),1)
+  CFLAGS += -DUSE_BLAS
+endif
+
 # Busca todos os arquivos .cpp em src e suas subpastas
 SOURCE := $(shell find src -name '*.cpp')
 # Define onde os objetos .o ficarão

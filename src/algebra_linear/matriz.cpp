@@ -12,7 +12,9 @@
 
 #include "algebra_linear/matriz.hpp"
 
+#ifdef USE_BLAS
 #include <cblas.h>
+#endif
 
 // Construtor padrão
 Matriz::Matriz() : rows(0), columns(0) {}
@@ -289,11 +291,25 @@ void Matriz::print() const {
 }
 
 void Matriz::trocarLinhas(int linha1, int linha2) {
-  for (int i = 0; i < columns; ++i) {
-    double temp = getValue(linha1, i);
-    setValue(linha1, i, getValue(linha2, i));
-    setValue(linha2, i, temp);
-  }
+#ifdef USE_BLAS
+  cblas_dswap(columns, rawData() + linha1 * columns, 1,
+                       rawData() + linha2 * columns, 1);
+#else
+  std::swap_ranges(rawData() + linha1 * columns,
+                   rawData() + (linha1 + 1) * columns,
+                   rawData() + linha2 * columns);
+#endif
+}
+
+void Matriz::linhaAxpy(int dest, int src, double alpha, int col_inicio) {
+#ifdef USE_BLAS
+  cblas_daxpy(columns - col_inicio, alpha,
+              rawData() + src  * columns + col_inicio, 1,
+              rawData() + dest * columns + col_inicio, 1);
+#else
+  for (int j = col_inicio; j < columns; ++j)
+    data[dest * columns + j] += alpha * data[src * columns + j];
+#endif
 }
 
 Matriz Matriz::clonar() const {

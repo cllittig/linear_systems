@@ -63,6 +63,7 @@ public:
     //Métodos auxiliares
     void print() const;
     void trocarLinhas(int linha1, int linha2);
+    void linhaAxpy(int dest, int src, double alpha, int col_inicio = 0);
     Matriz clonar() const;
 
     static Matriz identity(int n, int m);
