@@ -58,21 +58,6 @@ int Matriz::getRows() const { return rows; }
 
 int Matriz::getColumns() const { return columns; }
 
-double Matriz::getValue(int row, int column) const {
-  if (row < 0 || row >= rows || column < 0 || column >= columns)
-    throw std::out_of_range("error in getValue: index out of range");
-  return data[row * columns + column];
-}
-
-// Métodos de modificação
-
-void Matriz::setValue(int row, int column, double value) {
-  if (row < 0 || row >= rows || column < 0 || column >= columns) {
-    throw std::out_of_range("index out of range");
-  }
-  data[row * columns + column] = value;
-}
-
 // Operações matriciais
 
 // Soma

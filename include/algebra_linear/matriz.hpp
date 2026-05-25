@@ -1,6 +1,7 @@
 #ifndef MATRIZ_HPP
 #define MATRIZ_HPP
 
+#include <stdexcept>
 #include <vector>
 
 class Matriz{
@@ -24,10 +25,25 @@ public:
     //métodos de acesso
     int getRows() const;
     int getColumns() const;
-    double getValue(int row, int column) const;
 
-    //metodo de modificação
-    void setValue(int row, int column, double value);
+    inline double getValue(int row, int column) const {
+#ifndef NDEBUG
+        if (row < 0 || row >= rows || column < 0 || column >= columns)
+            throw std::out_of_range("error in getValue: index out of range");
+#endif
+        return data[row * columns + column];
+    }
+
+    inline void setValue(int row, int column, double value) {
+#ifndef NDEBUG
+        if (row < 0 || row >= rows || column < 0 || column >= columns)
+            throw std::out_of_range("index out of range");
+#endif
+        data[row * columns + column] = value;
+    }
+
+    inline double* rawData() { return data.data(); }
+    inline const double* rawData() const { return data.data(); }
 
     //operações com matriciais
 

@@ -1,8 +1,13 @@
 CXX    := g++
 AR     := ar
-# -Iinclude faz com que o compilador busque dentro da pasta include
-CFLAGS := -std=c++17 -O3 -Wall -Wextra -Iinclude -MMD -MP
 LDFLAGS := -lopenblas -lm -lpthread
+
+BUILD ?= release
+ifeq ($(BUILD),debug)
+  CFLAGS := -std=c++17 -O0 -g -Wall -Wextra -Iinclude -MMD -MP
+else
+  CFLAGS := -std=c++17 -O3 -DNDEBUG -Wall -Wextra -Iinclude -MMD -MP
+endif
 
 # Busca todos os arquivos .cpp em src e suas subpastas
 SOURCE := $(shell find src -name '*.cpp')

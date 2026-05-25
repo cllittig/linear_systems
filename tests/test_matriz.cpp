@@ -34,6 +34,7 @@ static void test_get_set_value() {
     ASSERT_NEAR(m.getValue(0, 0), 5.5, 0.0);
 }
 
+#ifndef NDEBUG
 static void test_get_value_out_of_range() {
     Matriz m(2, 2);
     ASSERT_THROW(m.getValue(2, 2), std::out_of_range);
@@ -43,6 +44,7 @@ static void test_set_value_out_of_range() {
     Matriz m(2, 2);
     ASSERT_THROW(m.setValue(5, 5, 10.0), std::out_of_range);
 }
+#endif
 
 static void test_copy_constructor() {
     Matriz m1 = make_m1();
@@ -154,8 +156,10 @@ int main() {
     RUN_TEST(test_constructor_default);
     RUN_TEST(test_constructor_dimensions);
     RUN_TEST(test_get_set_value);
+#ifndef NDEBUG
     RUN_TEST(test_get_value_out_of_range);
     RUN_TEST(test_set_value_out_of_range);
+#endif
     RUN_TEST(test_copy_constructor);
     RUN_TEST(test_addition);
     RUN_TEST(test_subtraction);
