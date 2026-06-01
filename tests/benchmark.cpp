@@ -13,6 +13,10 @@
 using Clock = std::chrono::high_resolution_clock;
 using Ms    = std::chrono::duration<double, std::milli>;
 
+#ifndef VARIANTE
+#define VARIANTE "padrão"
+#endif
+
 // Symmetric diagonally dominant matrix → SPD (guaranteed convergence for all methods)
 static Matriz make_spd(int n, std::mt19937 &rng) {
     std::uniform_real_distribution<double> dist(0.1, 1.0);
@@ -72,7 +76,7 @@ int main() {
         {"gauss_seidel", run_gs},
     };
 
-    printf("n,metodo,tempo_ms,residuo\n");
+    printf("n,metodo,variante,tempo_ms,residuo\n");
 
     for (int n : sizes) {
         Matriz A = make_spd(n, rng);
@@ -82,7 +86,7 @@ int main() {
             auto t0 = Clock::now();
             Vector x = s.fn(A, b);
             double ms = Ms(Clock::now() - t0).count();
-            printf("%d,%s,%.3f,%.6e\n", n, s.name, ms, residual(A, b, x));
+            printf("%d,%s,%s,%.3f,%.6e\n", n, s.name, VARIANTE, ms, residual(A, b, x));
         }
     }
 

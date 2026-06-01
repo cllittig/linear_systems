@@ -9,3 +9,5 @@ grav
 plot/data.csv
 plot/data.png
 libls.so
+plot/*.png
+plot/*.csv

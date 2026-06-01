@@ -14,6 +14,9 @@ ifeq ($(BLAS),1)
   CFLAGS += -DUSE_BLAS
 endif
 
+VARIANTE ?= $(if $(filter 1,$(BLAS)),blas,escalar)
+CFLAGS   += -DVARIANTE='"$(VARIANTE)"'
+
 # Busca todos os arquivos .cpp em src e suas subpastas
 SOURCE := $(shell find src -name '*.cpp')
 # Define onde os objetos .o ficarão
@@ -34,7 +37,7 @@ build/%.o: src/%.cpp
 
 # Limpeza
 clean:
-	rm -rf build $(LIB) $(PLOT_CSV) $(PLOT_PNG)
+	rm -rf build $(LIB) $(PLOT_CSV)
 
 # --- Tests ---
 # Lista todos os .cpp em tests/ e define os binários correspondentes em build/tests/
@@ -69,13 +72,23 @@ $(BENCHMARK_BIN): tests/benchmark.cpp $(LIB)
 	@mkdir -p build
 	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
 
+COMPARE_CSV := plot/comparar.csv
+COMPARE_PNG := plot/comparar.png
+
+# Compila e roda as variantes blas e escalar, mescla os CSVs e gera o gráfico
+comparar:
+	$(MAKE) clean && $(MAKE) $(BENCHMARK_BIN) BLAS=1 VARIANTE=blas
+	./$(BENCHMARK_BIN) > $(COMPARE_CSV)
+	$(MAKE) clean && $(MAKE) $(BENCHMARK_BIN) BLAS=0 VARIANTE=escalar
+	./$(BENCHMARK_BIN) | tail -n +2 >> $(COMPARE_CSV)
+	$(PYTHON) plot/plot.py $(COMPARE_CSV) $(COMPARE_PNG)
+
 PYTHON    := plot/.venv/bin/python
 PLOT_CSV  := plot/data.csv
-PLOT_PNG  := plot/data.png
 
-$(PLOT_PNG): $(BENCHMARK_BIN) plot/plot.py
+plot/%.png: $(BENCHMARK_BIN) plot/plot.py
 	./$(BENCHMARK_BIN) > $(PLOT_CSV)
-	$(PYTHON) plot/plot.py $(PLOT_CSV)
+	$(PYTHON) plot/plot.py $(PLOT_CSV) $@
 
 # --- Instalação ---
 INSTALL_LIB_DIR  := /usr/local/lib

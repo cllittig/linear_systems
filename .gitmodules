@@ -1,0 +1,4 @@
+[submodule "artigo"]
+	path = artigo
+	url = git@github.com:cllittig/artigo_tcc1.git
+	shallow = true
