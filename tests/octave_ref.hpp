@@ -26,6 +26,7 @@ namespace octave_ref {
 Vector solve_lu(const Matriz& A, const Vector& b);
 Vector solve_cholesky(const Matriz& A, const Vector& b);
 Vector solve_gauss_jordan(const Matriz& A, const Vector& b);
+Vector solve_gauss_seidel(const Matriz& A, const Vector& b);
 Vector solve_pcg(const Matriz& A, const Vector& b);
 
 } // namespace octave_ref

@@ -59,7 +59,7 @@ ifneq ($(OCTAVE_OCTLIBDIR),)
 endif
 
 # Lista todos os .cpp em tests/ e define os binários correspondentes em build/tests/
-TEST_SRCS := $(filter-out tests/benchmark.cpp tests/test_octave_comparison.cpp tests/octave_ref.cpp, $(wildcard tests/*.cpp))
+TEST_SRCS := $(filter-out tests/benchmark.cpp tests/benchmark_runner.cpp tests/test_octave_comparison.cpp tests/octave_ref.cpp, $(wildcard tests/*.cpp))
 TEST_BINS := $(TEST_SRCS:tests/%.cpp=build/tests/%)
 
 # Octave comparison test (only if Octave is available)
@@ -127,6 +127,18 @@ $(BENCHMARK_BIN): tests/benchmark.cpp $(LIB)
 	@mkdir -p build
 	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
 
+# --- Benchmark Runner (TCC: gera CSVs em data/ para os gráficos em Python) ---
+BENCHMARK_RUNNER_BIN := build/benchmark_runner
+
+# Compila e executa o runner a partir da raiz (necessário para o caminho data/).
+benchmark-runner: $(BENCHMARK_RUNNER_BIN)
+	@mkdir -p data
+	./$(BENCHMARK_RUNNER_BIN)
+
+$(BENCHMARK_RUNNER_BIN): tests/benchmark_runner.cpp $(LIB)
+	@mkdir -p build
+	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
+
 PYTHON    := plot/.venv/bin/python
 PLOT_CSV  := plot/data.csv
 PLOT_PNG  := plot/data.png
@@ -149,4 +161,4 @@ uninstall:
 	rm -f $(INSTALL_LIB_DIR)/$(LIB)
 	rm -rf $(INSTALL_INC_DIR)
 
-.PHONY: all clean test test-octave benchmark install uninstall
+.PHONY: all clean test test-octave benchmark benchmark-runner install uninstall

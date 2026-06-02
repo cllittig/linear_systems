@@ -1,0 +1,16 @@
+Tamanho_N,Metodo,Tempo_s
+1000,LU,0.446727
+1000,Cholesky,0.176913
+1000,Gauss-Seidel,0.00981998
+1000,SOR,0.0545712
+1000,Gradientes Conjugados,0.00569956
+2000,LU,3.43044
+2000,Cholesky,1.52672
+2000,Gauss-Seidel,0.0440593
+2000,SOR,0.224945
+2000,Gradientes Conjugados,0.0235636
+5000,LU,46.0461
+5000,Cholesky,22.7699
+5000,Gauss-Seidel,0.204714
+5000,SOR,1.4311
+5000,Gradientes Conjugados,0.1359

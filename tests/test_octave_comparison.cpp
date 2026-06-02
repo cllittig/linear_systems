@@ -149,6 +149,9 @@ inline Vector octave_solve_cholesky(const Matriz& A, const Vector& b) {
 inline Vector octave_solve_gauss_jordan(const Matriz& A, const Vector& b) {
     return octave_ref::solve_gauss_jordan(A, b);
 }
+inline Vector octave_solve_gauss_seidel(const Matriz& A, const Vector& b) {
+    return octave_ref::solve_gauss_seidel(A, b);
+}
 inline Vector octave_solve_pcg(const Matriz& A, const Vector& b,
                                double /*tol*/ = 1e-10, int /*max_iter*/ = 1000) {
     return octave_ref::solve_pcg(A, b);
@@ -519,21 +522,79 @@ TEST_F(OctaveComparisonTest, ConjugateGradient_LargeMatrix_50x50_Comparison) {
 
 /**
  * ==================================================================================
- * ADDITIONAL NOTE ON GAUSS-SEIDEL COMPARISON
+ * COMPARATIVE TESTS: GAUSS-SEIDEL
  * ==================================================================================
- * 
- * Gauss-Seidel is NOT included in this Octave comparison test because:
- * 
- * 1. Octave's C++ API (liboctave) does not provide a direct function
- *    for the Gauss-Seidel iterative method.
- * 
- * 2. Accessing Gauss-Seidel would require:
- *    a) Writing Octave script code (forbidden by strict requirements)
- *    b) Using system calls to execute Octave scripts (forbidden)
- *    c) Implementing custom Octave functions dynamically (not available)
- * 
- * 3. RECOMMENDATION: Gauss-Seidel is validated in test_gauss_seidel.cpp
- *    with direct numerical tests and correctness verification.
- * 
+ * Octave não expõe Gauss-Seidel diretamente na API C++, então a referência
+ * usada aqui é a solução direta A\b (Matrix::solve), comparando a solução
+ * iterativa da biblioteca com a solução numérica de alta precisão.
  * ==================================================================================
  */
+
+TEST_F(OctaveComparisonTest, GaussSeidel_SmallMatrix_3x3_Comparison) {
+    Matriz A = createSimpleSPDMatrix3x3();
+    Vector b = createSimpleVector3();
+
+    // Solve using library (iterative)
+    auto lib_start = std::chrono::high_resolution_clock::now();
+    solver::IterationInfo info;
+    Vector x_lib = gaussseidel::solve(A, b, 1e-10, 5000, &info, 1.0);
+    auto lib_end = std::chrono::high_resolution_clock::now();
+    auto lib_duration = std::chrono::duration_cast<std::chrono::microseconds>(lib_end - lib_start);
+
+    // Solve using Octave direct reference
+    auto oct_start = std::chrono::high_resolution_clock::now();
+    Vector x_oct = octave_helpers::octave_solve_gauss_seidel(A, b);
+    auto oct_end = std::chrono::high_resolution_clock::now();
+    auto oct_duration = std::chrono::duration_cast<std::chrono::microseconds>(oct_end - oct_start);
+
+    EXPECT_TRUE(info.converged) << "Gauss-Seidel did not converge on 3x3 SPD matrix";
+
+    // Compare solutions
+    for (int i = 0; i < 3; ++i) {
+        EXPECT_NEAR(x_lib.getValue(i), x_oct.getValue(i), TOLERANCE);
+    }
+
+    // Verify residuals
+    double res_lib = octave_helpers::compute_residual(A, x_lib, b);
+    double res_oct = octave_helpers::compute_residual(A, x_oct, b);
+    EXPECT_LT(res_lib, TOLERANCE);
+    EXPECT_LT(res_oct, TOLERANCE);
+
+    std::cout << "Gauss-Seidel (3x3) - Library: " << lib_duration.count() << " μs, "
+              << "Octave ref: " << oct_duration.count() << " μs\n";
+}
+
+TEST_F(OctaveComparisonTest, GaussSeidel_LargeMatrix_50x50_Comparison) {
+    int n = PERFORMANCE_SIZE;
+    Matriz A = createRandomMatrix(n); // SPD by construction
+    Vector b = createRandomVector(n);
+
+    // Solve using library (iterative)
+    auto lib_start = std::chrono::high_resolution_clock::now();
+    solver::IterationInfo info;
+    Vector x_lib = gaussseidel::solve(A, b, 1e-10, 10000, &info, 1.0);
+    auto lib_end = std::chrono::high_resolution_clock::now();
+    auto lib_duration = std::chrono::duration_cast<std::chrono::milliseconds>(lib_end - lib_start);
+
+    // Solve using Octave direct reference
+    auto oct_start = std::chrono::high_resolution_clock::now();
+    Vector x_oct = octave_helpers::octave_solve_gauss_seidel(A, b);
+    auto oct_end = std::chrono::high_resolution_clock::now();
+    auto oct_duration = std::chrono::duration_cast<std::chrono::milliseconds>(oct_end - oct_start);
+
+    EXPECT_TRUE(info.converged) << "Gauss-Seidel did not converge on 50x50 SPD matrix";
+
+    // Compare solutions
+    for (int i = 0; i < n; ++i) {
+        EXPECT_NEAR(x_lib.getValue(i), x_oct.getValue(i), TOLERANCE * n);
+    }
+
+    // Verify residuals
+    double res_lib = octave_helpers::compute_residual(A, x_lib, b);
+    double res_oct = octave_helpers::compute_residual(A, x_oct, b);
+    EXPECT_LT(res_lib, TOLERANCE * n);
+    EXPECT_LT(res_oct, TOLERANCE * n);
+
+    std::cout << "Gauss-Seidel (50x50) - Library: " << lib_duration.count() << " ms, "
+              << "Octave ref: " << oct_duration.count() << " ms\n";
+}

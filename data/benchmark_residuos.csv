@@ -1,0 +1,16 @@
+Tamanho_N,Metodo,Norma_Residuo
+1000,LU,2.94702e-11
+1000,Cholesky,1.57632e-11
+1000,Gauss-Seidel,4.37257e-05
+1000,SOR,0.000142827
+1000,Gradientes Conjugados,9.35795e-05
+2000,LU,1.09412e-10
+2000,Cholesky,5.75981e-11
+2000,Gauss-Seidel,2.09543e-05
+2000,SOR,0.000382552
+2000,Gradientes Conjugados,3.34557e-05
+5000,LU,9.4003e-10
+5000,Cholesky,4.68944e-10
+5000,Gauss-Seidel,0.00118374
+5000,SOR,0.00144827
+5000,Gradientes Conjugados,0.000406143

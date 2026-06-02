@@ -70,6 +70,12 @@ Vector solve_gauss_jordan(const Matriz& A, const Vector& b) {
     return solve_reference(A, b);
 }
 
+// O Octave não expõe Gauss-Seidel na API C++; usamos A\b como referência
+// numérica para validar convergência e precisão da implementação iterativa.
+Vector solve_gauss_seidel(const Matriz& A, const Vector& b) {
+    return solve_reference(A, b);
+}
+
 // pcg do Octave não é exposto na API C++ sem o interpretador; para SPD bem
 // condicionada, a solução direta serve de referência exata para o CG.
 Vector solve_pcg(const Matriz& A, const Vector& b) {
