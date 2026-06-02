@@ -15,13 +15,7 @@ Vector::Vector(int len) : length(len){
     data.resize(len);
 }
 
-//construtor copia
-Vector::Vector(const Vector& other): length(other.getLength()), data(other.data){};
-
-//destrutor
-Vector::~Vector(){
-    data.clear();
-}
+// Cópia, atribuição, move e destrutor: regra do zero (gerados pelo compilador).
 
 //metodos de acesso
 int Vector::getLength()const{

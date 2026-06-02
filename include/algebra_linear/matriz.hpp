@@ -18,9 +18,9 @@ public:
     Matriz();
     Matriz(int rows, int columns);
     Matriz(std::tuple<int,int>, std::vector<double>);
-    Matriz(const Matriz& other);
-    
-    ~Matriz();
+    // Cópia, atribuição, move e destrutor seguem a regra do zero:
+    // std::vector já gerencia os recursos corretamente, então os membros
+    // especiais gerados pelo compilador são suficientes (e corretos).
 
     //métodos de acesso
     int getRows() const;

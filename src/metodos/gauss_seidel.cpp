@@ -73,7 +73,8 @@ Matriz gauss_seidel(const Matriz &A, const Matriz &b, double tol, int maxIter, s
     if (info) info->final_residual_norm = rnorm;
   }
 
-  if (info) { info->iterations = maxIter; info->final_residual_norm = 0.0; info->converged = false; }
+  // Preserva o último resíduo calculado (mais informativo que zerá-lo).
+  if (info) { info->iterations = maxIter; info->converged = false; }
   throw std::runtime_error("Não convergiu no número máximo de iterações.");
 }
 
