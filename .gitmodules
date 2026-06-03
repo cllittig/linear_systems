@@ -2,3 +2,6 @@
 	path = artigo
 	url = git@github.com:cllittig/artigo_tcc1.git
 	shallow = true
+[submodule "artigo2"]
+	path = artigo2
+	url = git@github.com:cllittig/artigo_tcc2.git
