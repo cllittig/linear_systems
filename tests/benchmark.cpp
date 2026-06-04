@@ -10,6 +10,10 @@
 #include "metodos/gauss_seidel.hpp"
 #include "metodos/lu.hpp"
 
+#ifdef USE_LAPACK
+#include <lapacke.h>
+#endif
+
 using Clock = std::chrono::high_resolution_clock;
 using Ms    = std::chrono::duration<double, std::milli>;
 
@@ -17,7 +21,6 @@ using Ms    = std::chrono::duration<double, std::milli>;
 #define VARIANTE "padrão"
 #endif
 
-// Symmetric diagonally dominant matrix → SPD (guaranteed convergence for all methods)
 static Matriz make_spd(int n, std::mt19937 &rng) {
     std::uniform_real_distribution<double> dist(0.1, 1.0);
     Matriz A(n, n);
@@ -66,14 +69,54 @@ static Vector run_gs(const Matriz &A, const Vector &b) {
     return gaussseidel::solve(A, b);
 }
 
+#ifdef USE_LAPACK
+// Converte Matriz row-major → vetor column-major (layout que o LAPACK espera)
+static std::vector<double> to_colmajor(const Matriz &A) {
+    int n = A.getRows(), m = A.getColumns();
+    std::vector<double> buf(n * m);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            buf[j * n + i] = A.getValue(i, j);
+    return buf;
+}
+
+static Vector run_lapack_lu(const Matriz &A, const Vector &b) {
+    int n = A.getRows();
+    std::vector<double> a = to_colmajor(A);
+    std::vector<double> rhs(n);
+    for (int i = 0; i < n; i++) rhs[i] = b.getValue(i);
+    std::vector<lapack_int> ipiv(n);
+    LAPACKE_dgesv(LAPACK_COL_MAJOR, n, 1, a.data(), n, ipiv.data(), rhs.data(), n);
+    Vector x(n);
+    for (int i = 0; i < n; i++) x.setValue(i, rhs[i]);
+    return x;
+}
+
+static Vector run_lapack_cholesky(const Matriz &A, const Vector &b) {
+    int n = A.getRows();
+    std::vector<double> a = to_colmajor(A);
+    std::vector<double> rhs(n);
+    for (int i = 0; i < n; i++) rhs[i] = b.getValue(i);
+    LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', n, a.data(), n);
+    LAPACKE_dpotrs(LAPACK_COL_MAJOR, 'L', n, 1, a.data(), n, rhs.data(), n);
+    Vector x(n);
+    for (int i = 0; i < n; i++) x.setValue(i, rhs[i]);
+    return x;
+}
+#endif
+
 int main() {
     std::mt19937 rng(42);
-    const std::vector<int> sizes = {10, 16, 32, 50, 64, 100, 128, 200, 256, 500, 512, 1000, 1024};
+    const std::vector<int> sizes = {64, 128, 256, 512, 1000, 2000, 5000};
     const Solver solvers[] = {
-        {"lu",           run_lu},
-        {"cholesky",     run_cholesky},
-        {"cg",           run_cg},
-        {"gauss_seidel", run_gs},
+        {"lu",              run_lu},
+        // {"cholesky",        run_cholesky},
+        // {"cg",              run_cg},
+        // {"gauss_seidel",    run_gs},
+#ifdef USE_LAPACK
+        {"lapack_lu",       run_lapack_lu},
+        // {"lapack_cholesky", run_lapack_cholesky},
+#endif
     };
 
     printf("n,metodo,variante,tempo_ms,residuo\n");

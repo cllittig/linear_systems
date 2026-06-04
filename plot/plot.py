@@ -14,17 +14,21 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 COLORS = {
-    "lu":           "#e15759",
-    "cholesky":     "#f28e2b",
-    "cg":           "#4e79a7",
-    "gauss_seidel": "#76b7b2",
+    "lu":              "#e15759",
+    "cholesky":        "#f28e2b",
+    "cg":              "#4e79a7",
+    "gauss_seidel":    "#76b7b2",
+    "lapack_lu":       "#59a14f",
+    "lapack_cholesky": "#499894",
 }
 
 LABELS = {
-    "lu":           "LU",
-    "cholesky":     "Cholesky",
-    "cg":           "Gradiente Conjugado",
-    "gauss_seidel": "Gauss-Seidel",
+    "lu":              "LU (nossa impl.)",
+    "cholesky":        "Cholesky (nossa impl.)",
+    "cg":              "Gradiente Conjugado",
+    "gauss_seidel":    "Gauss-Seidel",
+    "lapack_lu":       "LAPACK dgesv",
+    "lapack_cholesky": "LAPACK dpotrf/dpotrs",
 }
 
 _LINESTYLES = ["-", "--", ":", "-."]
@@ -91,25 +95,44 @@ def plot_residual(df: pd.DataFrame, ax: plt.Axes) -> None:
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("Uso: python plot.py <data.csv> <saida.png>")
+        print("Uso: python plot.py <data.csv> <saida.png> [--split]")
         sys.exit(1)
 
     df = load(sys.argv[1])
+    out = sys.argv[2]
+    split = "--split" in sys.argv
 
     tem_variante = "variante" in df.columns and df["variante"].nunique() > 1
     titulo = ("Comparação de variantes" if tem_variante
               else "Comparação de métodos para sistemas lineares densos")
 
-    fig, (ax_time, ax_res) = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle(titulo, fontsize=13)
+    if split:
+        base = out.rsplit(".", 1)[0]
+        ext  = out.rsplit(".", 1)[-1]
 
-    plot_time(df, ax_time)
-    plot_residual(df, ax_res)
+        fig_t, ax_t = plt.subplots(figsize=(7, 5))
+        fig_t.suptitle(titulo, fontsize=13)
+        plot_time(df, ax_t)
+        fig_t.tight_layout()
+        out_t = f"{base}_tempo.{ext}"
+        fig_t.savefig(out_t, dpi=150)
+        print(f"Salvo em {out_t}")
 
-    fig.tight_layout()
-    out = sys.argv[2]
-    fig.savefig(out, dpi=150)
-    print(f"Salvo em {out}")
+        fig_r, ax_r = plt.subplots(figsize=(7, 5))
+        fig_r.suptitle(titulo, fontsize=13)
+        plot_residual(df, ax_r)
+        fig_r.tight_layout()
+        out_r = f"{base}_residuo.{ext}"
+        fig_r.savefig(out_r, dpi=150)
+        print(f"Salvo em {out_r}")
+    else:
+        fig, (ax_time, ax_res) = plt.subplots(1, 2, figsize=(12, 5))
+        fig.suptitle(titulo, fontsize=13)
+        plot_time(df, ax_time)
+        plot_residual(df, ax_res)
+        fig.tight_layout()
+        fig.savefig(out, dpi=150)
+        print(f"Salvo em {out}")
 
 
 if __name__ == "__main__":

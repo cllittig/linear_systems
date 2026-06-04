@@ -11,3 +11,6 @@ plot/data.png
 libls.so
 plot/*.png
 plot/*.csv
+octave_*.txt
+octave_*.n
+octave_*.m
