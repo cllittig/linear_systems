@@ -3,12 +3,9 @@
 // Benchmark automatizado para o TCC. Gera sistemas Ax=b com A simétrica e
 // estritamente diagonal dominante (logo, Positiva Definida), resolve o sistema
 // pelos 5 métodos numéricos da biblioteca e exporta tempo de execução e norma
-// do resíduo para arquivos .csv em data/ (consumidos posteriormente em Python).
+// do resíduo para arquivos .csv em data/.
 //
 // Métodos: LU, Cholesky, Gauss-Seidel, SOR e Gradientes Conjugados.
-//
-// IMPORTANTE: execute a partir da raiz do projeto para que o caminho relativo
-// "data/" seja resolvido corretamente (ou use `make benchmark-runner`).
 
 #include <chrono>
 #include <cmath>
@@ -29,20 +26,15 @@
 namespace {
 
 // --- Parâmetros do benchmark ---------------------------------------------
-const std::vector<int> SIZES   = {1000, 2000, 5000};
-const double           TOL     = 1e-8;   // tolerância dos métodos iterativos
+// Granularidade aumentada para observar melhor a curva de complexidade
+const std::vector<int> SIZES    = {250, 500, 750, 1000, 1500, 2000, 2500, 3000,3500, 4000,4500, 5000,5500,6000,6500,7000,7500};
+const int              NUM_RUNS = 10;    // Quantidade de execuções por tamanho de matriz
+const double           TOL      = 1e-8;  // tolerância dos métodos iterativos
 const int              MAX_ITER = 10000; // teto de iterações
-const double           SOR_OMEGA = 1.5;  // fator de relaxação para o SOR
-const unsigned         SEED    = 42;     // semente fixa: execução reprodutível
+const double           SOR_OMEGA= 1.5;   // fator de relaxação para o SOR
+const unsigned         SEED     = 42;    // semente fixa: execução reprodutível
 
 // Gera A (n x n) simétrica e ESTRITAMENTE diagonal dominante.
-//
-// Estratégia: preenchemos a parte triangular superior estrita com valores
-// aleatórios e espelhamos para a inferior (garante simetria). A diagonal é
-// então definida como a_ii = (soma dos |a_ij|, j != i) + margem positiva, o
-// que torna a matriz estritamente diagonal dominante. Uma matriz simétrica e
-// estritamente diagonal dominante com diagonal positiva é Positiva Definida,
-// condição que assegura a convergência de todos os 5 métodos.
 Matriz gerarMatrizSPD(int n, std::mt19937& rng) {
     std::uniform_real_distribution<double> off(-1.0, 1.0);
     std::uniform_real_distribution<double> diagBoost(1.0, 2.0);
@@ -83,9 +75,7 @@ struct Resultado {
     double residuo;
 };
 
-// Cronometra a resolução do sistema e calcula a norma do resíduo da solução.
-// Usa std::chrono::steady_clock (relógio monotônico de alta precisão) para
-// medir o tempo de parede (wall-clock) gasto exclusivamente na resolução.
+// Cronometra a resolução do sistema
 template <typename Solve>
 Resultado medir(const Matriz& A, const Vector& b, Solve&& solve) {
     using clock = std::chrono::steady_clock;
@@ -108,64 +98,54 @@ int main() {
         return 1;
     }
 
-    tempos   << "Tamanho_N,Metodo,Tempo_s\n";
-    residuos << "Tamanho_N,Metodo,Norma_Residuo\n";
+    // Adicionada a coluna "Run" para rastrear as múltiplas execuções
+    tempos   << "Tamanho_N,Metodo,Run,Tempo_s\n";
+    residuos << "Tamanho_N,Metodo,Run,Norma_Residuo\n";
 
-    // Cada método encapsulado como (A, b) -> x, com seus parâmetros fixados.
     struct Metodo {
         std::string nome;
         std::function<Vector(const Matriz&, const Vector&)> resolver;
     };
+    
     const std::vector<Metodo> metodos = {
-        {"LU",       [](const Matriz& A, const Vector& b) {
-            return lu::solve(A, b);
-        }},
-        {"Cholesky", [](const Matriz& A, const Vector& b) {
-            return cholesky::solve(A, b);
-        }},
-        {"Gauss-Seidel", [](const Matriz& A, const Vector& b) {
-            return gaussseidel::solve(A, b, TOL, MAX_ITER, nullptr, 1.0);
-        }},
-        {"SOR", [](const Matriz& A, const Vector& b) {
-            return gaussseidel::solve(A, b, TOL, MAX_ITER, nullptr, SOR_OMEGA);
-        }},
-        {"Gradientes Conjugados", [](const Matriz& A, const Vector& b) {
-            return conjugate_gradient::solve(A, b, TOL, MAX_ITER,
-                                             nullptr, nullptr, false);
-        }},
+        {"LU",       [](const Matriz& A, const Vector& b) { return lu::solve(A, b); }},
+        {"Cholesky", [](const Matriz& A, const Vector& b) { return cholesky::solve(A, b); }},
+        {"Gauss-Seidel", [](const Matriz& A, const Vector& b) { return gaussseidel::solve(A, b, TOL, MAX_ITER, nullptr, 1.0); }},
+        {"SOR", [](const Matriz& A, const Vector& b) { return gaussseidel::solve(A, b, TOL, MAX_ITER, nullptr, SOR_OMEGA); }},
+        {"Gradientes Conjugados", [](const Matriz& A, const Vector& b) { return conjugate_gradient::solve(A, b, TOL, MAX_ITER, nullptr, nullptr, false); }},
     };
 
     std::mt19937 rng(SEED);
 
     for (int n : SIZES) {
-        std::printf("=== Gerando sistema N = %d ===\n", n);
+        std::printf("=== Avaliando tamanho N = %d (%d execucoes) ===\n", n, NUM_RUNS);
         std::fflush(stdout);
 
-        Matriz A = gerarMatrizSPD(n, rng);
-        Vector xExato = gerarXExato(n);
-        Vector b = multiplicar(A, xExato); // b = A x
+        for (int run = 1; run <= NUM_RUNS; ++run) {
+            // A cada "run", uma nova matriz é gerada para evitar vício nos dados
+            Matriz A = gerarMatrizSPD(n, rng);
+            Vector xExato = gerarXExato(n);
+            Vector b = multiplicar(A, xExato); 
 
-        for (const Metodo& m : metodos) {
-            std::printf("  [N=%d] %-22s ... ", n, m.nome.c_str());
-            std::fflush(stdout);
+            std::printf("  [Run %02d/%02d] -> ", run, NUM_RUNS);
 
-            Resultado r = medir(A, b, m.resolver);
+            for (const Metodo& m : metodos) {
+                Resultado r = medir(A, b, m.resolver);
 
-            // Grava e descarrega imediatamente: dados parciais ficam salvos
-            // mesmo que um caso grande seja interrompido.
-            tempos   << n << ',' << m.nome << ',' << r.tempo_s  << '\n';
-            residuos << n << ',' << m.nome << ',' << r.residuo  << '\n';
+                tempos   << n << ',' << m.nome << ',' << run << ',' << r.tempo_s  << '\n';
+                residuos << n << ',' << m.nome << ',' << run << ',' << r.residuo  << '\n';
+                
+                std::printf("%s ", m.nome.c_str());
+            }
+            
             tempos.flush();
             residuos.flush();
-
-            std::printf("%.4f s | resíduo = %.3e\n", r.tempo_s, r.residuo);
+            std::printf("[OK]\n");
             std::fflush(stdout);
         }
         std::printf("\n");
     }
 
-    std::printf("Concluído. Dados salvos em:\n"
-                "  data/benchmark_tempos.csv\n"
-                "  data/benchmark_residuos.csv\n");
+    std::printf("Concluído. Dados salvos.\n");
     return 0;
 }
