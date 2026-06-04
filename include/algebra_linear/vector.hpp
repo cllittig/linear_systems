@@ -17,9 +17,9 @@ public:
     //construtor e destrutor
     Vector();
     Vector(int len);
-    Vector(const Vector& other);
-
-    ~Vector();
+    // Cópia, atribuição, move e destrutor seguem a regra do zero:
+    // std::vector gerencia o armazenamento, então os membros especiais
+    // gerados pelo compilador são suficientes e corretos.
 
     //Metodos de acesso
     int getLength() const;

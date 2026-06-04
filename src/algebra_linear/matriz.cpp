@@ -47,12 +47,7 @@ Matriz::Matriz(int rows, int columns) : rows(rows), columns(columns) {
   data.resize(rows * columns);
 }
 
-// Copia do construtor
-Matriz::Matriz(const Matriz &other)
-    : rows(other.getRows()), columns(other.getColumns()), data(other.data) {}
-
-// Destrutor
-Matriz::~Matriz() { data.clear(); }
+// Cópia, atribuição, move e destrutor: regra do zero (gerados pelo compilador).
 
 // Métodos de acesso
 
@@ -165,22 +160,26 @@ bool Matriz::isSimetric() const {
   return true;
 }
 
-// Cálculo de determinante  ---- ainda falta terminar
+// Cálculo de determinante (fórmulas fechadas para 1x1, 2x2 e 3x3).
 double Matriz::determinant() const {
-  if (rows == 1 && columns == 1)
+  if (!isSquare())
+    throw std::invalid_argument("determinant: a matriz precisa ser quadrada.");
+
+  if (rows == 1)
     return getValue(0, 0);
-  else if (rows == 2 && columns == 2)
+  else if (rows == 2)
     return (getValue(0, 0) * getValue(1, 1) - getValue(0, 1) * getValue(1, 0));
-  else if (rows == 3 && columns == 3)
+  else if (rows == 3)
     return (getValue(0, 0) * getValue(1, 1) * getValue(2, 2) +
             getValue(0, 1) * getValue(1, 2) * getValue(2, 0) +
             getValue(0, 2) * getValue(1, 0) * getValue(2, 1) -
             getValue(0, 2) * getValue(1, 1) * getValue(2, 0) -
             getValue(0, 1) * getValue(1, 0) * getValue(2, 2) -
             getValue(0, 0) * getValue(1, 2) * getValue(2, 1));
-  else {
-    return 0.0;
-  }
+
+  // Evita devolver 0.0 silenciosamente para n > 3 (resultado seria incorreto).
+  throw std::runtime_error(
+      "determinant: implementado apenas para matrizes ate 3x3.");
 }
 
 // Matriz identidade

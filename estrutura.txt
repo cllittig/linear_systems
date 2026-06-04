@@ -1,0 +1,95 @@
+.
+├── build
+│   ├── algebra_linear
+│   │   ├── matriz.d
+│   │   ├── matriz_identity.d
+│   │   ├── matriz_identity.o
+│   │   ├── matriz.o
+│   │   ├── vector.d
+│   │   └── vector.o
+│   ├── metodos
+│   │   ├── cholesky.d
+│   │   ├── cholesky.o
+│   │   ├── conjugate_gradient.d
+│   │   ├── conjugate_gradient.o
+│   │   ├── gauss_jordan.d
+│   │   ├── gauss_jordan.o
+│   │   ├── gauss_seidel.d
+│   │   ├── gauss_seidel.o
+│   │   ├── lu.d
+│   │   └── lu.o
+│   ├── tests
+│   │   ├── test_cholesky
+│   │   ├── test_cholesky.d
+│   │   ├── test_conjugate_gradient
+│   │   ├── test_conjugate_gradient.d
+│   │   ├── test_gauss_jordan
+│   │   ├── test_gauss_jordan.d
+│   │   ├── test_gauss_seidel
+│   │   ├── test_gauss_seidel.d
+│   │   ├── test_lu
+│   │   ├── test_lu.d
+│   │   ├── test_matriz
+│   │   ├── test_matriz.d
+│   │   ├── test_octave_comparison
+│   │   ├── test_octave_comparison.d
+│   │   ├── test_vector
+│   │   └── test_vector.d
+│   └── utils
+│       ├── read_data.d
+│       └── read_data.o
+├── estrutura.txt
+├── include
+│   ├── algebra_linear
+│   │   ├── matriz.hpp
+│   │   └── vector.hpp
+│   ├── metodos
+│   │   ├── cholesky.hpp
+│   │   ├── conjugate_gradient.hpp
+│   │   ├── gauss_jordan.hpp
+│   │   ├── gauss_seidel.hpp
+│   │   ├── lu.hpp
+│   │   └── solver_utils.hpp
+│   └── utils
+│       ├── read_data.hpp
+│       └── test.hpp
+├── libls.a
+├── LICENSE
+├── Makefile
+├── plot
+│   ├── plot.py
+│   ├── requirements.txt
+│   └── venv
+│       ├── bin
+│       ├── include
+│       ├── lib
+│       ├── lib64 -> lib
+│       ├── pyvenv.cfg
+│       └── share
+├── README.md
+├── src
+│   ├── algebra_linear
+│   │   ├── matriz.cpp
+│   │   ├── matriz_identity.cpp
+│   │   └── vector.cpp
+│   ├── metodos
+│   │   ├── cholesky.cpp
+│   │   ├── conjugate_gradient.cpp
+│   │   ├── gauss_jordan.cpp
+│   │   ├── gauss_seidel.cpp
+│   │   └── lu.cpp
+│   └── utils
+│       └── read_data.cpp
+└── tests
+    ├── octave_ref.cpp
+    ├── octave_ref.hpp
+    ├── test_cholesky.cpp
+    ├── test_conjugate_gradient.cpp
+    ├── test_gauss_jordan.cpp
+    ├── test_gauss_seidel.cpp
+    ├── test_lu.cpp
+    ├── test_matriz.cpp
+    ├── test_octave_comparison.cpp
+    └── test_vector.cpp
+
+22 directories, 71 files
