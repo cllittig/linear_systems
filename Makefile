@@ -14,6 +14,14 @@ ifeq ($(BLAS),1)
   CFLAGS += -DUSE_BLAS
 endif
 
+LAPACK ?= 0
+ifeq ($(LAPACK),1)
+  CFLAGS  += -DUSE_LAPACK -I/usr/include/openblas
+endif
+
+VARIANTE ?= $(if $(filter 1,$(LAPACK)),lapack,$(if $(filter 1,$(BLAS)),blas,escalar))
+CFLAGS   += -DVARIANTE='"$(VARIANTE)"'
+
 # Busca todos os arquivos .cpp em src e suas subpastas
 SOURCE := $(shell find src -name '*.cpp')
 # Define onde os objetos .o ficarão
@@ -34,7 +42,7 @@ build/%.o: src/%.cpp
 
 # Limpeza
 clean:
-	rm -rf build $(LIB) $(PLOT_CSV) $(PLOT_PNG)
+	rm -rf build $(LIB) $(PLOT_CSV)
 
 # --- Tests ---
 # Google Test Configuration
@@ -127,6 +135,7 @@ $(BENCHMARK_BIN): tests/benchmark.cpp $(LIB)
 	@mkdir -p build
 	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
 
+<<<<<<< HEAD
 # --- Benchmark Runner (TCC: gera CSVs em data/ para os gráficos em Python) ---
 BENCHMARK_RUNNER_BIN := build/benchmark_runner
 
@@ -138,14 +147,46 @@ benchmark-runner: $(BENCHMARK_RUNNER_BIN)
 $(BENCHMARK_RUNNER_BIN): tests/benchmark_runner.cpp $(LIB)
 	@mkdir -p build
 	$(CXX) $(CFLAGS) $< -L. -lls $(LDFLAGS) -o $@
+=======
+COMPARE_CSV    := plot/comparar.csv
+COMPARE_PNG    := plot/comparar.png
+ART_CSV        := plot/art_data.csv
+ARTIGO_IMG_DIR := artigo2/imagens
+ARTIGO_TEMPO   := $(ARTIGO_IMG_DIR)/grafico_tempo_execucao.png
+ARTIGO_RESIDUO := $(ARTIGO_IMG_DIR)/grafico_norma_residuo.png
+
+# Compila e roda as variantes blas e lapack, mescla os CSVs e gera o gráfico
+comparar:
+	$(MAKE) clean && $(MAKE) $(BENCHMARK_BIN) BLAS=1 LAPACK=0 VARIANTE=blas
+	./$(BENCHMARK_BIN) > $(COMPARE_CSV)
+	$(MAKE) clean && $(MAKE) $(BENCHMARK_BIN) BLAS=1 LAPACK=1 VARIANTE=lapack
+	./$(BENCHMARK_BIN) | tail -n +2 >> $(COMPARE_CSV)
+	$(PYTHON) plot/plot.py $(COMPARE_CSV) $(COMPARE_PNG) --split
+
+# Filtra o CSV completo para as séries usadas no artigo
+$(ART_CSV): $(COMPARE_CSV)
+	$(PYTHON) -c "\
+import pandas as pd; \
+df = pd.read_csv('$<'); \
+mask = ((df['metodo']=='lu') & (df['variante']=='blas')) \
+     | ((df['metodo']=='lapack_lu') & (df['variante']=='lapack')); \
+df[mask].to_csv('$@', index=False)"
+
+# Gera as figuras do artigo diretamente em artigo2/imagens/
+$(ARTIGO_TEMPO): $(ART_CSV) plot/plot.py
+	$(PYTHON) plot/plot.py $(ART_CSV) plot/_artigo.png --split
+	mv plot/_artigo_tempo.png $(ARTIGO_TEMPO)
+	mv plot/_artigo_residuo.png $(ARTIGO_RESIDUO)
+
+figuras: $(ARTIGO_TEMPO)
+>>>>>>> main
 
 PYTHON    := plot/.venv/bin/python
 PLOT_CSV  := plot/data.csv
-PLOT_PNG  := plot/data.png
 
-$(PLOT_PNG): $(BENCHMARK_BIN) plot/plot.py
+plot/%.png: $(BENCHMARK_BIN) plot/plot.py
 	./$(BENCHMARK_BIN) > $(PLOT_CSV)
-	$(PYTHON) plot/plot.py $(PLOT_CSV)
+	$(PYTHON) plot/plot.py $(PLOT_CSV) $@
 
 # --- Instalação ---
 INSTALL_LIB_DIR  := /usr/local/lib

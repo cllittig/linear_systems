@@ -10,5 +10,10 @@ plot/data.csv
 plot/data.png
 plot/venv
 libls.so
+plot/*.png
+plot/*.csv
+octave_*.txt
+octave_*.n
+octave_*.m
 data
 
